@@ -41,6 +41,16 @@ def loadtxt(file, limit=float('inf'), ids_present=True, do_differencing=True):
     return spike_data
 
 
+def save_spikes_to_parquet(spike_data, filename, num_digits=3):
+
+    data = {}
+    for index, key in enumerate(spike_data['ids']):
+        data[key] = [' '.join([str(round(value, num_digits)) for value
+                     in spike_data['series'][index]]), ]
+
+    pd.DataFrame(data).to_parquet(filename)
+
+
 def split_by_spikes(spike_data, ratio=0.5):
 
     train_lengths = [len(train) for train in spike_data['series']]
