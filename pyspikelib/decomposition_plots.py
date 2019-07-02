@@ -1,5 +1,4 @@
 import matplotlib.pylab as plt
-import matplotlib as mpl
 import numpy as np
 import seaborn as sns
 import pandas as pd
@@ -53,8 +52,6 @@ def decompose_scatter_plot(X, y, features, reducer,
     sns.set(palette='Set2', style='ticks', font_scale=1.7)
 
     indices = np.random.choice(X.shape[0], samples)
-    if supervised:
-        train_indices = list(set(range(X.shape[0])) - set(indices))
 
     colors = pd.Series(y[indices]).map({
                             0: sns.color_palette('Paired')[5],
@@ -72,6 +69,7 @@ def decompose_scatter_plot(X, y, features, reducer,
 
 
     if supervised:
+        train_indices = list(set(range(X.shape[0])) - set(indices))
         mapper = reducer[0](**reducer[1]).fit(X.loc[:, features].values[train_indices, :],
                                               y[train_indices])
         X2d = mapper.transform(X.loc[:, features].values[indices, :])

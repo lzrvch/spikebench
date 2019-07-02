@@ -1,7 +1,6 @@
 import numpy as np
-import elephant.statistics as spkstat
-
 import multiprocessing as mp
+import elephant.statistics as spkstat
 
 from tqdm import tqdm
 from quantities import ms
