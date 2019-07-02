@@ -11,4 +11,4 @@ Lazarevich, Ivan, Ilya Prokin, and Boris Gutkin. "Neural activity classification
 
 Please cite the above paper in case you are using the code in your own work.
 
-The processed fcx-1 data from the example can be downloaded [by this link](https://drive.google.com/open?id=1fQKpYPHmenob692YZaG1P7YKWCYaTw19) (filesize is approximately 26 Mb).
+The processed fcx-1 data from the example can be downloaded [via this link](https://drive.google.com/open?id=1fQKpYPHmenob692YZaG1P7YKWCYaTw19) (filesize is approximately 26 Mb).
