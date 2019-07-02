@@ -1,0 +1,8 @@
+numpy
+pandas
+tqdm
+sklearn
+tsfresh
+matplotlib
+elephant 
+neo
