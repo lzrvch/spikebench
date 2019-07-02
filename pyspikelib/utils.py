@@ -51,6 +51,21 @@ def save_spikes_to_parquet(spike_data, filename, num_digits=3):
     pd.DataFrame(data).to_parquet(filename)
 
 
+def load_parquet(file):
+
+    spike_data = {}
+    spike_data['ids'] = []
+    spike_data['series'] = []
+
+    data = pd.read_parquet(file)
+    for neuron_id in data.columns.values:
+        spike_data['ids'].append(neuron_id)
+        series = [float(value) for value in data[neuron_id].values[0].split()]
+        spike_data['series'].append(np.array(series))
+
+    return spike_data
+
+
 def split_by_spikes(spike_data, ratio=0.5):
 
     train_lengths = [len(train) for train in spike_data['series']]
@@ -83,6 +98,9 @@ def crop_isi_samples(isi_series_list, window_size=50, step_size=50,
     sample_ids = []
     sample_freqs = []
     samples = {}
+
+    if condition is None:
+        condition = lambda series: True
 
     for train_index, spike_train in enumerate(isi_series_list['series']):
         for index in range(0, int(np.floor(spike_train.shape[0] / step_size - 1))):
