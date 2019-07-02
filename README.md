@@ -10,3 +10,5 @@ To get started, have a look at an example in the `notebooks` subfolder which is 
 Lazarevich, Ivan, Ilya Prokin, and Boris Gutkin. "Neural activity classification with machine learning models trained on interspike interval series data." arXiv preprint arXiv:1810.03855 (2018). available at [https://arxiv.org/abs/1810.03855](https://arxiv.org/abs/1810.03855)
 
 Please cite the above paper in case you are using the code in your own work.
+
+The processed fcx-1 data from the example can be downloaded [by this link](https://drive.google.com/open?id=1fQKpYPHmenob692YZaG1P7YKWCYaTw19) (filesize is approximately 26 Mb).
