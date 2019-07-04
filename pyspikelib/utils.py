@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from tqdm import tqdm
-
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 
@@ -212,7 +210,7 @@ def preprocess_tsfresh_features(features_df, impute=True,
     if remove_low_variance:
         X_scaled = X_scaled.loc[:, (X_scaled.std() / (1e-9 + X_scaled.mean())).abs() > 0.2]
 
-    # correlation removal....
+    # Todo correlation removal routine
 
     if keep_features_list:
         X_final = X_scaled.loc[:, keep_features_list]
@@ -349,40 +347,16 @@ def model_evaluation_pipe(data, model, tsfresh_mode, names, window_size,
 
 def distribution_features_tsfresh_dict():
 
+    ratios_beyond_r_sigma_rvalues = [1, 1.5, 2, 2.5, 3, 5, 6, 7, 10]
+
     feature_dict = {
-      'symmetry_looking': [{'r': 0.0},
-                           {'r': 0.05},
-                           {'r': 0.1},
-                           {'r': 0.15000000000000002},
-                           {'r': 0.2},
-                           {'r': 0.25},
-                           {'r': 0.30000000000000004},
-                           {'r': 0.35000000000000003},
-                           {'r': 0.4},
-                           {'r': 0.45},
-                           {'r': 0.5},
-                           {'r': 0.55},
-                           {'r': 0.6000000000000001},
-                           {'r': 0.65},
-                           {'r': 0.7000000000000001},
-                           {'r': 0.75},
-                           {'r': 0.8},
-                           {'r': 0.8500000000000001},
-                           {'r': 0.9},
-                           {'r': 0.9500000000000001}],
+      'symmetry_looking': [{'r': value} for value
+                           in np.arange(0.05, 1.0, 0.05)],
      'standard_deviation': None,
      'kurtosis': None,
      'variance_larger_than_standard_deviation': None,
-     'ratio_beyond_r_sigma': [{'r': 0.5},
-                              {'r': 1},
-                              {'r': 1.5},
-                              {'r': 2},
-                              {'r': 2.5},
-                              {'r': 3},
-                              {'r': 5},
-                              {'r': 6},
-                              {'r': 7},
-                              {'r': 10}],
+     'ratio_beyond_r_sigma': [{'r': value} for value
+                              ratios_beyond_r_sigma_rvalues],
      'count_below_mean': None,
      'maximum': None,
      'variance': None,
@@ -390,36 +364,13 @@ def distribution_features_tsfresh_dict():
      'mean': None,
      'skewness': None,
      'length': None,
-     'large_standard_deviation': [{'r': 0.05},
-                                  {'r': 0.1},
-                                  {'r': 0.15000000000000002},
-                                  {'r': 0.2},
-                                  {'r': 0.25},
-                                  {'r': 0.30000000000000004},
-                                  {'r': 0.35000000000000003},
-                                  {'r': 0.4},
-                                  {'r': 0.45},
-                                  {'r': 0.5},
-                                  {'r': 0.55},
-                                  {'r': 0.6000000000000001},
-                                  {'r': 0.65},
-                                  {'r': 0.7000000000000001},
-                                  {'r': 0.75},
-                                  {'r': 0.8},
-                                  {'r': 0.8500000000000001},
-                                  {'r': 0.9},
-                                  {'r': 0.9500000000000001}],
+     'large_standard_deviation': [{'r': value} for value
+                                  in np.arange(0.05, 1.0, 0.05)],
      'count_above_mean': None,
      'minimum': None,
      'sum_values': None,
-     'quantile': [{'q': 0.1},
-                  {'q': 0.2},
-                  {'q': 0.3},
-                  {'q': 0.4},
-                  {'q': 0.6},
-                  {'q': 0.7},
-                  {'q': 0.8},
-                  {'q': 0.9}],
+     'quantile': [{'r': value} for value
+                  in np.arange(0.1, 1.0, 0.1)],
      'ratio_value_number_to_time_series_length': None,
      'median': None}
 
@@ -445,5 +396,5 @@ def tsfresh_dataframe_stats(df):
     return features
 
 
-# to-do: cross-validation sklearn subclass based on neuron ID splitting
+# ToDo cross-validation sklearn subclass based on neuron ID splitting
 
