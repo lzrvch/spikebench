@@ -44,7 +44,7 @@ def save_spikes_to_parquet(spike_data, filename, num_digits=3):
     data = {}
     for index, key in enumerate(spike_data['ids']):
         data[key] = [' '.join([str(round(value, num_digits)) for value
-                     in spike_data['series'][index]]), ]
+                               in spike_data['series'][index]]), ]
 
     pd.DataFrame(data).to_parquet(filename)
 
@@ -87,10 +87,18 @@ def split_by_spikes(spike_data, ratio=0.5):
     return first_spike_data, second_spike_data
 
 
-def crop_isi_samples(isi_series_list, window_size=50, step_size=50,
-                     upper_isi_thr=float('inf'), upper_percentage=1.0,
-                     lower_isi_thr=-1e6, lower_percentage=1.0, total_samples=None,
-                     shuffle_isis=False, sampling_rate=1, condition=None):
+def crop_isi_samples(
+        isi_series_list,
+        window_size=50,
+        step_size=50,
+        upper_isi_thr=float('inf'),
+        upper_percentage=1.0,
+        lower_isi_thr=-1e6,
+        lower_percentage=1.0,
+        total_samples=None,
+        shuffle_isis=False,
+        sampling_rate=1,
+        condition=None):
 
     isi_samples = []
     sample_ids = []
@@ -98,17 +106,22 @@ def crop_isi_samples(isi_series_list, window_size=50, step_size=50,
     samples = {}
 
     if condition is None:
-        condition = lambda series: True
+        def condition(series): return True
 
     for train_index, spike_train in enumerate(isi_series_list['series']):
-        for index in range(0, int(np.floor(spike_train.shape[0] / step_size - 1))):
-            train_sample = spike_train[index*step_size:(index*step_size+window_size)]
+        for index in range(
+            0, int(
+                np.floor(
+                spike_train.shape[0] / step_size - 1))):
+            train_sample = spike_train[index *
+                                       step_size:(index * step_size + window_size)]
             sample_freqs.append(train_sample.mean())
-            if ((train_sample > lower_isi_thr).mean() >= lower_percentage) & \
-                ((train_sample < upper_isi_thr).mean() >= upper_percentage):
+            if ((train_sample > lower_isi_thr).mean() >= lower_percentage) & (
+                    (train_sample < upper_isi_thr).mean() >= upper_percentage):
                 if train_sample.shape[0] == window_size:
                     if shuffle_isis:
-                        train_sample = pd.Series(train_sample).sample(n=train_sample.shape[0]).values
+                        train_sample = pd.Series(train_sample).sample(
+                            n=train_sample.shape[0]).values
                     if condition(train_sample):
                         sample_ids.append(isi_series_list['ids'][train_index])
                         isi_samples.append(train_sample[::sampling_rate])
@@ -118,8 +131,9 @@ def crop_isi_samples(isi_series_list, window_size=50, step_size=50,
 
     if total_samples:
         if total_samples > isi_samples.shape[0]:
-            print('WARNING: total_samples (%i) larger than the number of samples (%i)!' %
-                  (total_samples, isi_samples.shape[0]))
+            print(
+                'WARNING: total_samples (%i) larger than the number of samples (%i)!' %
+                (total_samples, isi_samples.shape[0]))
 
         chosen_indices = np.random.choice(isi_samples.shape[0], total_samples)
         isi_samples = isi_samples[chosen_indices, :]
@@ -165,8 +179,8 @@ def tsfresh_vectorize(data_array, to_file=None,
         elif feature_dict == 'temporal_features':
             full_feature_dict = ComprehensiveFCParameters()
             distro_features = distribution_features_tsfresh_dict()
-            ts_feature_dict = {key: full_feature_dict[key] for key
-                               in set(full_feature_dict) - set(distro_features)}
+            ts_feature_dict = {key: full_feature_dict[key] for key in set(
+                full_feature_dict) - set(distro_features)}
         else:
             ts_feature_dict = feature_dict
     else:
@@ -208,7 +222,8 @@ def preprocess_tsfresh_features(features_df, impute=True,
         X_scaled = features_df
 
     if remove_low_variance:
-        X_scaled = X_scaled.loc[:, (X_scaled.std() / (1e-9 + X_scaled.mean())).abs() > 0.2]
+        X_scaled = X_scaled.loc[:, (X_scaled.std(
+        ) / (1e-9 + X_scaled.mean())).abs() > 0.2]
 
     # Todo correlation removal routine
 
@@ -225,8 +240,10 @@ def train_test_common_features(train_dataframe, test_dataframe):
     train_feature_set = set(train_dataframe.columns.values)
     test_feature_set = set(test_dataframe.columns.values)
 
-    train_dataframe = train_dataframe.loc[:, train_feature_set.intersection(test_feature_set)]
-    test_dataframe = test_dataframe.loc[:, train_feature_set.intersection(test_feature_set)]
+    train_dataframe = train_dataframe.loc[:, train_feature_set.intersection(
+        test_feature_set)]
+    test_dataframe = test_dataframe.loc[:, train_feature_set.intersection(
+        test_feature_set)]
 
     return train_dataframe, test_dataframe
 
@@ -246,7 +263,7 @@ def cross_validation_tsfresh(tsdata, model, train_test_names,
         samples = tsdata[train_test_names[0]].shape[0]
 
     if not test_samples:
-            test_samples = samples
+        test_samples = samples
 
     def forest_importances(model):
         return model.feature_importances_
@@ -262,8 +279,10 @@ def cross_validation_tsfresh(tsdata, model, train_test_names,
 
     for index in range(trials):
 
-        indices = np.random.choice(tsdata[train_test_names[0]].shape[0], samples)
-        test_indices = np.random.choice(tsdata[train_test_names[2]].shape[0], test_samples)
+        indices = np.random.choice(
+            tsdata[train_test_names[0]].shape[0], samples)
+        test_indices = np.random.choice(
+            tsdata[train_test_names[2]].shape[0], test_samples)
 
         X_train = pd.concat([tsdata[train_test_names[0]].iloc[indices, :],
                              tsdata[train_test_names[1]].iloc[indices, :]])
@@ -271,7 +290,11 @@ def cross_validation_tsfresh(tsdata, model, train_test_names,
 
         X_test = pd.concat([tsdata[train_test_names[2]].iloc[test_indices, :],
                             tsdata[train_test_names[3]].iloc[test_indices, :]])
-        y_test = np.array([0] * test_indices.shape[0] + [1] * test_indices.shape[0])
+        y_test = np.array(
+            [0] *
+            test_indices.shape[0] +
+            [1] *
+            test_indices.shape[0])
 
         X_train, scaler = preprocess_tsfresh_features(X_train,
                                                       remove_low_variance=True)
@@ -347,32 +370,33 @@ def model_evaluation_pipe(data, model, tsfresh_mode, names, window_size,
 
 def distribution_features_tsfresh_dict():
 
-    ratios_beyond_r_sigma_rvalues = [1, 1.5, 2, 2.5, 3, 5, 6, 7, 10]
+    ratios_beyond_r_sigma_rvalues = [1, 1.5, 2, 2.5,
+                                     3, 5, 6, 7, 10]
 
     feature_dict = {
-      'symmetry_looking': [{'r': value} for value
-                           in np.arange(0.05, 1.0, 0.05)],
-     'standard_deviation': None,
-     'kurtosis': None,
-     'variance_larger_than_standard_deviation': None,
-     'ratio_beyond_r_sigma': [{'r': value} for value
-                              ratios_beyond_r_sigma_rvalues],
-     'count_below_mean': None,
-     'maximum': None,
-     'variance': None,
-     'abs_energy': None,
-     'mean': None,
-     'skewness': None,
-     'length': None,
-     'large_standard_deviation': [{'r': value} for value
-                                  in np.arange(0.05, 1.0, 0.05)],
-     'count_above_mean': None,
-     'minimum': None,
-     'sum_values': None,
-     'quantile': [{'r': value} for value
-                  in np.arange(0.1, 1.0, 0.1)],
-     'ratio_value_number_to_time_series_length': None,
-     'median': None}
+        'symmetry_looking': [{'r': value} for value
+                             in np.arange(0.05, 1.0, 0.05)],
+        'standard_deviation': None,
+        'kurtosis': None,
+        'variance_larger_than_standard_deviation': None,
+        'ratio_beyond_r_sigma': [{'r': value} for value
+                                 ratios_beyond_r_sigma_rvalues],
+        'count_below_mean': None,
+        'maximum': None,
+        'variance': None,
+        'abs_energy': None,
+        'mean': None,
+        'skewness': None,
+        'length': None,
+        'large_standard_deviation': [{'r': value} for value
+                                     in np.arange(0.05, 1.0, 0.05)],
+        'count_above_mean': None,
+        'minimum': None,
+        'sum_values': None,
+        'quantile': [{'r': value} for value
+                     in np.arange(0.1, 1.0, 0.1)],
+        'ratio_value_number_to_time_series_length': None,
+        'median': None}
 
     return feature_dict
 
@@ -382,7 +406,10 @@ def tsfresh_dataframe_stats(df):
     unique_values = []
 
     for key in df.columns.values:
-        unique_values.append(pd.Series(df[key].values.astype(np.float32)).value_counts().values.shape[0])
+        unique_values.append(
+            pd.Series(
+                df[key].values.astype(
+                    np.float32)).value_counts().values.shape[0])
 
     unique_values = np.array(unique_values)
 
@@ -390,11 +417,10 @@ def tsfresh_dataframe_stats(df):
     features = {}
     features['nan'] = df.columns.values[np.where(unique_values == 0)[0]]
     features['binary'] = df.columns.values[np.where(unique_values == 2)[0]]
-    features['categorial'] = df.columns.values[np.where((unique_values > 2) &
-                                                        (unique_values < max_values))[0]]
+    features['categorial'] = df.columns.values[np.where(
+        (unique_values > 2) & (unique_values < max_values))[0]]
 
     return features
 
 
 # ToDo cross-validation sklearn subclass based on neuron ID splitting
-

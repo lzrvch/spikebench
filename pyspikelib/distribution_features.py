@@ -159,7 +159,7 @@ def ratio_beyond_r_sigma(x, r):
     :return type: bool
     """
     x = np.asarray(x)
-    return sum(abs(x - np.mean(x)) > r * np.std(x))/len(x)
+    return sum(abs(x - np.mean(x)) > r * np.std(x)) / len(x)
 
 
 def ratio_value_number_to_time_series_length(x):
@@ -179,7 +179,7 @@ def ratio_value_number_to_time_series_length(x):
     if len(x) == 0:
         return np.nan
 
-    return len(set(x))/len(x)
+    return len(set(x)) / len(x)
 
 
 def skewness(x):

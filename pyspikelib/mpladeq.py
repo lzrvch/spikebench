@@ -31,14 +31,14 @@ def frame_axis(ax):
 
 def params_make_fs(fs, figsize):
     return {
-       'axes.titlesize': fs,
-       'axes.labelsize': fs,
-       'font.size': fs,
-       'legend.fontsize': fs,
-       'xtick.labelsize': fs,
-       'ytick.labelsize': fs,
-       'text.usetex': False,
-       'figure.figsize': figsize,
+        'axes.titlesize': fs,
+        'axes.labelsize': fs,
+        'font.size': fs,
+        'legend.fontsize': fs,
+        'xtick.labelsize': fs,
+        'ytick.labelsize': fs,
+        'text.usetex': False,
+        'figure.figsize': figsize,
     }
 
 

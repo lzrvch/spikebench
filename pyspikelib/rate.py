@@ -32,7 +32,7 @@ def firing_rate_estimate(isi_series, width=100):
 
     spikes = np.cumsum(isi_series)
     train = SpikeTrain(spikes * ms, t_stop=spikes[-1])
-    kernel = GaussianKernel(sigma=width*ms)
+    kernel = GaussianKernel(sigma=width * ms)
     rate = spkstat.instantaneous_rate(train,
                                       kernel=kernel,
                                       sampling_period=ms)
@@ -85,7 +85,8 @@ def binarize_spike_train(isi_series, bin_size=10, binary=False):
     estimator = RateEstimator(bin_size=bin_size)
     estimator.binary = binary
     pool = mp.Pool(mp.cpu_count())
-    binary_series['series'] = pool.map(estimator.binarize, isi_series['series'])
+    binary_series['series'] = pool.map(
+        estimator.binarize, isi_series['series'])
     binary_series['ids'] = isi_series['ids']
 
     return binary_series
