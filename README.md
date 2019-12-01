@@ -1,6 +1,6 @@
 # pyspikelib
 
-*pyspikelib* is a package for neural decoding using time series classification approaches
+*pyspikelib* is a package for neural decoding from spike trains using time series classification approaches
 
 ## Getting Started
 
