@@ -379,8 +379,7 @@ def distribution_features_tsfresh_dict():
         'standard_deviation': None,
         'kurtosis': None,
         'variance_larger_than_standard_deviation': None,
-        'ratio_beyond_r_sigma': [{'r': value} for value
-                                 ratios_beyond_r_sigma_rvalues],
+        'ratio_beyond_r_sigma': [{'r': value} for value in ratios_beyond_r_sigma_rvalues],
         'count_below_mean': None,
         'maximum': None,
         'variance': None,
@@ -393,7 +392,7 @@ def distribution_features_tsfresh_dict():
         'count_above_mean': None,
         'minimum': None,
         'sum_values': None,
-        'quantile': [{'r': value} for value
+        'quantile': [{'q': value} for value
                      in np.arange(0.1, 1.0, 0.1)],
         'ratio_value_number_to_time_series_length': None,
         'median': None}
