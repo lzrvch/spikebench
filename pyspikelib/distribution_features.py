@@ -296,13 +296,13 @@ def distribution_feature_vector(x):
         sum_values,
         variance,
         variance_larger_than_standard_deviation,
-        lambda x: large_standard_deviation(x, r=0.05)
+        lambda x: large_standard_deviation(x, r=0.05),
     ]
 
     for q in np.linspace(0.1, 0.9, 9):
         feature_calculators.append(lambda x: quantile(x, q=q))
 
-    for r in [0.5, 1., 1.5, 2.]:
+    for r in [0.5, 1.0, 1.5, 2.0]:
         feature_calculators.append(lambda x: ratio_beyond_r_sigma(x, r=r))
 
     for r in np.linspace(0.2, 0.95, 16):
