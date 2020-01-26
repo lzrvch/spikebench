@@ -279,7 +279,6 @@ def length(x):
 
 
 def distribution_feature_vector(x):
-
     features = np.zeros(shape=44)
 
     feature_calculators = [

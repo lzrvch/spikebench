@@ -10,7 +10,6 @@ import tsfresh.utilities.dataframe_functions as tsfresh_utils
 
 
 def loadtxt(file, limit=float('inf'), ids_present=True, do_differencing=True):
-
     spike_data = {}
     spike_data['series'] = []
     spike_data['ids'] = []
@@ -40,7 +39,6 @@ def loadtxt(file, limit=float('inf'), ids_present=True, do_differencing=True):
 
 
 def save_spikes_to_parquet(spike_data, filename, num_digits=3):
-
     data = {}
     for index, key in enumerate(spike_data['ids']):
         data[key] = [' '.join([str(round(value, num_digits)) for value
@@ -50,7 +48,6 @@ def save_spikes_to_parquet(spike_data, filename, num_digits=3):
 
 
 def load_parquet(file):
-
     spike_data = {}
     spike_data['ids'] = []
     spike_data['series'] = []
@@ -65,7 +62,6 @@ def load_parquet(file):
 
 
 def split_by_spikes(spike_data, ratio=0.5):
-
     train_lengths = [len(train) for train in spike_data['series']]
 
     total_spikes = np.sum(train_lengths)
@@ -99,7 +95,6 @@ def crop_isi_samples(
         shuffle_isis=False,
         sampling_rate=1,
         condition=None):
-
     isi_samples = []
     sample_ids = []
     sample_freqs = []
@@ -110,9 +105,9 @@ def crop_isi_samples(
 
     for train_index, spike_train in enumerate(isi_series_list['series']):
         for index in range(
-            0, int(
-                np.floor(
-                spike_train.shape[0] / step_size - 1))):
+                0, int(
+                    np.floor(
+                        spike_train.shape[0] / step_size - 1))):
             train_sample = spike_train[index *
                                        step_size:(index * step_size + window_size)]
             sample_freqs.append(train_sample.mean())
@@ -148,8 +143,7 @@ def crop_isi_samples(
 def tsfresh_vectorize(data_array, to_file=None,
                       feature_dict=None, n_jobs=8,
                       verbose=True):
-
-    df = pd.DataFrame(columns=['id', 'time', 'value'])
+    df = pd.DataFrame(columns=['id', 'time', 'value'], dtype=float)
     for index in range(data_array.shape[1]):
         tmp = pd.DataFrame(data_array[:, index],
                            columns=['value'])
@@ -203,7 +197,6 @@ def preprocess_tsfresh_features(features_df, impute=True,
                                 do_scaling=True, scaler=None,
                                 remove_low_variance=True,
                                 keep_features_list=None):
-
     if impute:
         tsfresh_utils.impute(features_df)
 
@@ -236,7 +229,6 @@ def preprocess_tsfresh_features(features_df, impute=True,
 
 
 def train_test_common_features(train_dataframe, test_dataframe):
-
     train_feature_set = set(train_dataframe.columns.values)
     test_feature_set = set(test_dataframe.columns.values)
 
@@ -255,7 +247,6 @@ def cross_validation_tsfresh(tsdata, model, train_test_names,
                              samples=None,
                              test_samples=None,
                              trials=5):
-
     scores = []
     importance = {}
 
@@ -278,7 +269,6 @@ def cross_validation_tsfresh(tsdata, model, train_test_names,
         metric_score = accuracy
 
     for index in range(trials):
-
         indices = np.random.choice(
             tsdata[train_test_names[0]].shape[0], samples)
         test_indices = np.random.choice(
@@ -344,7 +334,6 @@ def cross_validation_tsfresh(tsdata, model, train_test_names,
 
 def model_evaluation_pipe(data, model, tsfresh_mode, names, window_size,
                           step_size, total_samples, sub_samples, trials=5):
-
     crop_data = {}
 
     for key in data:
@@ -369,7 +358,6 @@ def model_evaluation_pipe(data, model, tsfresh_mode, names, window_size,
 
 
 def distribution_features_tsfresh_dict():
-
     ratios_beyond_r_sigma_rvalues = [1, 1.5, 2, 2.5,
                                      3, 5, 6, 7, 10]
 
@@ -401,7 +389,6 @@ def distribution_features_tsfresh_dict():
 
 
 def tsfresh_dataframe_stats(df):
-
     unique_values = []
 
     for key in df.columns.values:
@@ -420,6 +407,5 @@ def tsfresh_dataframe_stats(df):
         (unique_values > 2) & (unique_values < max_values))[0]]
 
     return features
-
 
 # ToDo cross-validation sklearn subclass based on neuron ID splitting

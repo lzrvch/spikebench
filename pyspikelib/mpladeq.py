@@ -1,5 +1,6 @@
 import matplotlib.pylab as plt
 import matplotlib as mpl
+import seaborn as sns
 import numpy as np
 
 
@@ -8,7 +9,6 @@ def make_up_axis(ax):
     ax.yaxis.set_ticks_position('left')
     ax.spines['left'].set_color('#333333')
     ax.spines['bottom'].set_color('#333333')
-
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
@@ -42,7 +42,8 @@ def params_make_fs(fs, figsize):
     }
 
 
-def beautify_mpl(fontsize=16, figsize=(6, 5)):
+def beautify_mpl(fontsize=16, figsize=(10, 8), dark_mode=True):
+    sns.set(font_scale=1.7, style='ticks')
     params = params_make_fs(fontsize, figsize)
     mpl.rcParams['axes.facecolor'] = '#ffffff'
     mpl.rcParams['svg.fonttype'] = 'none'
@@ -54,6 +55,10 @@ def beautify_mpl(fontsize=16, figsize=(6, 5)):
     mpl.rcParams['legend.frameon'] = False
     mpl.rcParams['mathtext.default'] = 'regular'
     mpl.rcParams.update(params)
+    if dark_mode:
+        plt.style.use('dark_background')
+    plt.style.use('seaborn-pastel')
+    sns.set_color_codes()
 
 
 def prettify(figsize=(8, 6)):

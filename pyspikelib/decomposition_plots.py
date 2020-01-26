@@ -11,7 +11,6 @@ def feature_scatter_plot(X, y, features,
                          samples=1000, legend=None,
                          xaxis=None, yaxis=None,
                          figsize=(15, 8), alpha=0.3):
-
     sns.set(palette='Set2', style='ticks', font_scale=1.7)
 
     indices = np.random.choice(X.shape[0], samples)
@@ -48,7 +47,6 @@ def decompose_scatter_plot(X, y, features, reducer,
                            xaxis=None, yaxis=None,
                            supervised=False,
                            figsize=(15, 8), alpha=0.3):
-
     sns.set(palette='Set2', style='ticks', font_scale=1.7)
 
     indices = np.random.choice(X.shape[0], samples)
@@ -74,7 +72,7 @@ def decompose_scatter_plot(X, y, features, reducer,
         X2d = mapper.transform(X.loc[:, features].values[indices, :])
     else:
         X2d = reducer[0](**reducer[1]).fit_transform(X.loc[:,
-                                                           features].values[indices, :])
+                                                     features].values[indices, :])
 
     ax.scatter(X2d[:, 0],
                X2d[:, 1],
