@@ -28,7 +28,7 @@ class DFTransform(TransformerMixin, NoFitMixin):
 
 
 class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
-    def __init__(self, window=20, step=20, n_samples=1000):
+    def __init__(self, window=20, step=20, n_samples=None):
         self.window = window
         self.step = step
         self.n_samples = n_samples
@@ -46,16 +46,24 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
         if split_chunks.any():
             return np.vstack(split_chunks)
 
-    def transform(self, X, delimiter=None):
-        normalized_trains = []
-        for spike_train in X.series.values:
+    def transform(self, X, y=None, delimiter=None):
+        normalized_trains = np.zeros(self.window)
+        target = np.array([])
+        for train_index, spike_train in enumerate(X.series.values):
             spike_train = self.string_to_float_series(spike_train, delimiter=delimiter)
             split_chunks = self.rolling_window(
                 spike_train, window=self.window, step=self.step
             )
             if split_chunks is not None:
-                normalized_trains.append(split_chunks)
-        return np.vstack(normalized_trains)
+                normalized_trains = np.vstack([normalized_trains, split_chunks])
+                target = np.append(target, [y[train_index]] * split_chunks.shape[0])
+
+        normalized_trains = normalized_trains[1:, :]
+        if self.n_samples is not None:
+            sampled_indices = np.random.choice(normalized_trains.shape[0], self.n_samples)
+            normalized_trains = normalized_trains[sampled_indices, :]
+            target = target[sampled_indices]
+        return np.vstack(normalized_trains), target
 
 
 class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):

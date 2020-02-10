@@ -53,3 +53,15 @@ def tsfresh_dataframe_stats(df):
     ]
 
     return features
+
+
+def train_test_common_features(train_df, test_df):
+    train_feature_set = set(train_df.columns.values)
+    test_feature_set = set(test_df.columns.values)
+    train_df = train_df.loc[
+        :, train_feature_set.intersection(test_feature_set)
+    ]
+    test_df = test_df.loc[
+        :, train_feature_set.intersection(test_feature_set)
+    ]
+    return train_df, test_df
