@@ -18,17 +18,17 @@ def feature_scatter_plot(
     figsize=(15, 8),
     alpha=0.3,
 ):
-    sns.set(palette="Set2", style="ticks", font_scale=1.7)
+    sns.set(palette='Set2', style='ticks', font_scale=1.7)
 
     indices = np.random.choice(X.shape[0], samples)
 
     colors = pd.Series(y[indices]).map(
-        {0: sns.color_palette("Paired")[5], 1: sns.color_palette("Paired")[1]}
+        {0: sns.color_palette('Paired')[5], 1: sns.color_palette('Paired')[1]}
     )
 
     custom_lines = [
-        Line2D([0], [0], color=sns.color_palette("Paired")[5], lw=1.5),
-        Line2D([0], [0], color=sns.color_palette("Paired")[1], lw=1.5),
+        Line2D([0], [0], color=sns.color_palette('Paired')[5], lw=1.5),
+        Line2D([0], [0], color=sns.color_palette('Paired')[1], lw=1.5),
     ]
 
     beautify_mpl()
@@ -64,17 +64,17 @@ def decompose_scatter_plot(
     figsize=(15, 8),
     alpha=0.3,
 ):
-    sns.set(palette="Set2", style="ticks", font_scale=1.7)
+    sns.set(palette='Set2', style='ticks', font_scale=1.7)
 
     indices = np.random.choice(X.shape[0], samples)
 
     colors = pd.Series(y[indices]).map(
-        {0: sns.color_palette("Paired")[5], 1: sns.color_palette("Paired")[1]}
+        {0: sns.color_palette('Paired')[5], 1: sns.color_palette('Paired')[1]}
     )
 
     custom_lines = [
-        Line2D([0], [0], color=sns.color_palette("Paired")[5], lw=1.5),
-        Line2D([0], [0], color=sns.color_palette("Paired")[1], lw=1.5),
+        Line2D([0], [0], color=sns.color_palette('Paired')[5], lw=1.5),
+        Line2D([0], [0], color=sns.color_palette('Paired')[1], lw=1.5),
     ]
 
     beautify_mpl()

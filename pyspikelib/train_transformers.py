@@ -133,7 +133,7 @@ class TsfreshFeaturePreprocessorPipeline:
     def __init__(
         self,
         impute=True,
-        do_scaling=True,
+        do_scaling=False,
         remove_low_variance=True,
         keep_features_list=None,
     ):
@@ -149,19 +149,19 @@ class TsfreshFeaturePreprocessorPipeline:
                 (
                     'select_features',
                     DFTransform(
-                        partial(_select_features, feature_list=keep_features_list)
+                        partial(_select_features, feature_list=self.keep_features_list)
                     ),
                 )
             )
-        if self.impute is not None:
+        if self.impute:
             chained_transformers.append(
                 ('imputation', DFTransform(_tsfresh_imputation))
             )
-        if self.do_scaling is not None:
+        if self.do_scaling:
             chained_transformers.append(('standard_scaling', StandardScaler))
-        if self.remove_low_variance is not None:
+        if self.remove_low_variance:
             chained_transformers.append(
-                ('low_var_removal', DFTransform(_low_variance_removal))
+                ('low_var_removal', DFTransform(_low_variance_removal, copy=True))
             )
         # TODO: add correlation removal step
         return Pipeline(chained_transformers)
