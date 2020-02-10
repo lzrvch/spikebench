@@ -60,7 +60,9 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
 
         normalized_trains = normalized_trains[1:, :]
         if self.n_samples is not None:
-            sampled_indices = np.random.choice(normalized_trains.shape[0], self.n_samples)
+            sampled_indices = np.random.choice(
+                normalized_trains.shape[0], self.n_samples
+            )
             normalized_trains = normalized_trains[sampled_indices, :]
             target = target[sampled_indices]
         return np.vstack(normalized_trains), target
