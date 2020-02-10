@@ -1,13 +1,15 @@
+from functools import partial
+
 import numpy as np
 import pandas as pd
-from functools import partial
-from sklearn.pipeline import Pipeline
+import tsfresh.utilities.dataframe_functions as tsfresh_utils
 from sklearn.base import TransformerMixin
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
-import tsfresh.utilities.dataframe_functions as tsfresh_utils
+
+import pyspikelib.utils as utils
 
 
 class NoFitMixin:
@@ -32,30 +34,34 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
         self.n_samples = n_samples
 
     @staticmethod
-    def string_to_float_series(string_series, delimiter=','):
+    def string_to_float_series(string_series, delimiter=None):
         return np.array([float(value) for value in string_series.split(delimiter)])
 
     @staticmethod
     def rolling_window(a, window, step):
         n_chunks = (a.shape[0] - window) // step + 1
-        return np.vstack(
+        split_chunks = np.array(
             [np.roll(a, -step * index)[:window] for index in range(n_chunks)]
         )
+        if split_chunks.any():
+            return np.vstack(split_chunks)
 
-    def transform(self, X, delimiter=','):
+    def transform(self, X, delimiter=None):
         normalized_trains = []
         for spike_train in X.series.values:
             spike_train = self.string_to_float_series(spike_train, delimiter=delimiter)
-            normalized_trains.append(
-                self.rolling_window(spike_train, window=self.window, step=self.step)
+            split_chunks = self.rolling_window(
+                spike_train, window=self.window, step=self.step
             )
+            if split_chunks is not None:
+                normalized_trains.append(split_chunks)
         return np.vstack(normalized_trains)
 
 
 class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
-    def __init__(self, to_file=None, feature_dict=None, n_jobs=8, verbose=True):
+    def __init__(self, to_file=None, feature_set=None, n_jobs=8, verbose=True):
         self.to_file = to_file
-        self.feature_dict = feature_dict
+        self.feature_set = feature_set
         self.n_jobs = n_jobs
         self.verbose = verbose
 
@@ -67,14 +73,37 @@ class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
             tmp['id'] = list(range(X.shape[0]))
             tmp['time'] = [index] * X.shape[0]
             df = pd.concat([df, tmp], ignore_index=True, sort=False)
+        return df
 
     @staticmethod
-    def get_feature_dict(feature_dict=None):
-        return ComprehensiveFCParameters()
+    def get_feature_dict(feature_set=None):
+        full_feature_dict = ComprehensiveFCParameters()
+        simple_baseline_features = {
+            key: None
+            for key in [
+                'abs_energy',
+                'mean',
+                'median',
+                'minimum',
+                'maximum',
+                'standard_deviation',
+            ]
+        }
+        distribution_features_dict = utils.distribution_features_tsfresh_dict()
+        temporal_feature_dict = {
+            key: full_feature_dict[key]
+            for key in set(full_feature_dict) - set(distribution_features_dict)
+        }
+        feature_dict = {
+            'simple_baseline': simple_baseline_features,
+            'distribution_features': distribution_features_dict,
+            'temporal_features': temporal_feature_dict,
+        }
+        return feature_dict.get(feature_set, full_feature_dict)
 
     def transform(self, X):
         tsfresh_df = self.transform_to_tsfresh_format(X)
-        ts_feature_dict = self.get_feature_dict(self.feature_dict)
+        ts_feature_dict = self.get_feature_dict(self.feature_set)
         X_feats = extract_features(
             tsfresh_df,
             default_fc_parameters=ts_feature_dict,
@@ -134,4 +163,5 @@ class TsfreshFeaturePreprocessorPipeline:
             chained_transformers.append(
                 ('low_var_removal', DFTransform(_low_variance_removal))
             )
+        # TODO: add correlation removal step
         return Pipeline(chained_transformers)
