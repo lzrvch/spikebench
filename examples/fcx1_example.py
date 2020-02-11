@@ -37,17 +37,20 @@ def prepare_tsfresh_data(X, y):
     X, y = normalizer.transform(X, y, delimiter=',')
     vectorizer = TsfreshVectorizeTransform(feature_set='distribution_features')
     X = vectorizer.transform(X)
-    preprocessing_pipeline = TsfreshFeaturePreprocessorPipeline().construct_pipeline()
-    X = preprocessing_pipeline.fit_transform(X)
     return X, y
 
 
 X_train, y_train = prepare_tsfresh_data(X_train, y_train)
 X_test, y_test = prepare_tsfresh_data(X_test, y_test)
+
+preprocessing = TsfreshFeaturePreprocessorPipeline().construct_pipeline()
+preprocessing.fit(X_train)
+X_train = preprocessing.transform(X_train)
+X_test = preprocessing.transform(X_test)
+
 X_train, X_test = train_test_common_features(X_train, X_test)
 # %%
 forest = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1)
-
 forest.fit(X_train, y_train)
 # %%
 print('AUC-ROC score of RF: {}'.format(roc_auc_score(y_test, forest.predict(X_test))))

@@ -5,26 +5,16 @@ import pandas as pd
 import tsfresh.utilities.dataframe_functions as tsfresh_utils
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
 
 import pyspikelib.utils as utils
-
-
-class NoFitMixin:
-    def fit(self, X, y=None):
-        return self
-
-
-class DFTransform(TransformerMixin, NoFitMixin):
-    def __init__(self, func, copy=False):
-        self.func = func
-        self.copy = copy
-
-    def transform(self, X):
-        X_ = X if not self.copy else X.copy()
-        return self.func(X_)
+from pyspikelib.base_transformers import (
+    NoFitMixin,
+    DFTransform,
+    DFStandardScaler,
+    DFLowVarianceRemoval,
+)
 
 
 class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
@@ -130,10 +120,6 @@ def _tsfresh_imputation(X):
     return X
 
 
-def _low_variance_removal(X):
-    return X.loc[:, (X.std() / (1e-9 + X.mean())).abs() > 0.2]
-
-
 def _select_features(X, feature_list=None):
     feature_list = X.columns.value if feature_list is None else feature_list
     return X.loc[:, feature_list]
@@ -143,7 +129,7 @@ class TsfreshFeaturePreprocessorPipeline:
     def __init__(
         self,
         impute=True,
-        do_scaling=False,
+        do_scaling=True,
         remove_low_variance=True,
         keep_features_list=None,
     ):
@@ -167,11 +153,9 @@ class TsfreshFeaturePreprocessorPipeline:
             chained_transformers.append(
                 ('imputation', DFTransform(_tsfresh_imputation))
             )
-        if self.do_scaling:
-            chained_transformers.append(('standard_scaling', StandardScaler))
         if self.remove_low_variance:
-            chained_transformers.append(
-                ('low_var_removal', DFTransform(_low_variance_removal, copy=True))
-            )
+            chained_transformers.append(('low_var_removal', DFLowVarianceRemoval()))
+        if self.do_scaling:
+            chained_transformers.append(('standard_scaling', DFStandardScaler()))
         # TODO: add correlation removal step
         return Pipeline(chained_transformers)
