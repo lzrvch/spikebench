@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import tsfresh.utilities.dataframe_functions as tsfresh_utils
 from sklearn.base import TransformerMixin
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
@@ -50,16 +51,15 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
 
         normalized_trains = normalized_trains[1:, :]
         if self.n_samples is not None:
-            sampled_indices = np.random.choice(
-                normalized_trains.shape[0], self.n_samples
-            )
-            normalized_trains = normalized_trains[sampled_indices, :]
-            target = target[sampled_indices]
+            splitter = StratifiedShuffleSplit(n_splits=1, train_size=self.n_samples)
+            for train_index, test_index in splitter.split(normalized_trains, target):
+                normalized_trains = normalized_trains[train_index, :]
+                target = target[train_index]
         return np.vstack(normalized_trains), target
 
 
 class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
-    def __init__(self, to_file=None, feature_set=None, n_jobs=8, verbose=True):
+    def __init__(self, to_file=None, feature_set=None, n_jobs=32, verbose=True):
         self.to_file = to_file
         self.feature_set = feature_set
         self.n_jobs = n_jobs
