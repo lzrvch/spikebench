@@ -9,6 +9,7 @@ from pyspikelib import TrainNormalizeTransform
 from pyspikelib import TsfreshVectorizeTransform
 from pyspikelib import TsfreshFeaturePreprocessorPipeline
 from pyspikelib.utils import simple_undersampling
+
 from dataset_adapters import fcx1_dataset
 
 from pathlib import Path
@@ -33,9 +34,9 @@ X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 # %%
 def prepare_tsfresh_data(X, y):
     """Extract and preprocess tsfresh features from spiking data"""
-    normalizer = TrainNormalizeTransform(window=100, step=100, n_samples=5000)
+    normalizer = TrainNormalizeTransform(window=100, step=100, n_samples=8000)
     X, y = normalizer.transform(X, y, delimiter=',')
-    vectorizer = TsfreshVectorizeTransform(feature_set=None)
+    vectorizer = TsfreshVectorizeTransform(feature_set='no_entropy')
     X = vectorizer.transform(X)
     return X, y
 
@@ -54,7 +55,8 @@ X_test, y_test = simple_undersampling(X_test, y_test)
 print('Target mean | train: {} test: {}'.format(y_train.mean(), y_test.mean()))
 print('Dataset shape | train: {} test: {}'.format(X_train.shape, X_test.shape))
 # %%
-forest = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1)
+# X_train, X_test = train_test_common_features(X_train, X_test)
+forest = RandomForestClassifier(n_estimators=1000, random_state=42, n_jobs=-1)
 forest.fit(X_train, y_train)
 # %%
 accuracy_score = accuracy_score(y_test, forest.predict(X_test))

@@ -94,10 +94,16 @@ class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
             key: full_feature_dict[key]
             for key in set(full_feature_dict) - set(distribution_features_dict)
         }
+        no_entropy_features_dict = {
+            key: value
+            for key, value in full_feature_dict.items()
+            if 'entropy' not in key
+        }
         feature_dict = {
             'simple_baseline': simple_baseline_features,
             'distribution_features': distribution_features_dict,
             'temporal_features': temporal_feature_dict,
+            'no_entropy': no_entropy_features_dict,
         }
         return feature_dict.get(feature_set, full_feature_dict)
 
