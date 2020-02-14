@@ -5,4 +5,5 @@ from .train_transformers import (
     TsfreshFeaturePreprocessorPipeline,
     TsfreshVectorizeTransform,
 )
+from .train_encoders import ISIShuffleTransform
 from .utils import distribution_features_tsfresh_dict
