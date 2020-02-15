@@ -76,7 +76,9 @@ def train_test_common_features(train_df, test_df):
     return train_df, test_df
 
 
-def simple_undersampling(X, y, dominant_class_label=1, pandas=True):
+def simple_undersampling(
+    X, y, dominant_class_label=1, subsample_size=None, pandas=True
+):
     X = pd.DataFrame(X) if not pandas else X
     num_samples = (y != dominant_class_label).sum()
     dominant_indices = np.random.choice(X.shape[0] - num_samples, num_samples)
@@ -87,4 +89,10 @@ def simple_undersampling(X, y, dominant_class_label=1, pandas=True):
         ]
     )
     y_undersampled = np.array([0] * num_samples + [1] * num_samples)
+    if subsample_size is not None:
+        sample_indices = np.random.choice(X_undersampled.shape[0], subsample_size)
+        X_undersampled, y_undersampled = (
+            X_undersampled.iloc[sample_indices, :],
+            y_undersampled[sample_indices],
+        )
     return X_undersampled, y_undersampled
