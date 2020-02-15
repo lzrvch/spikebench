@@ -52,8 +52,8 @@ X_train = preprocessing.transform(X_train_full)
 X_test = preprocessing.transform(X_test_full)
 # %%
 def random_forest_scores(X_train, X_test, y_train, y_test, subsample_size=5000):
-    X_train, y_train = simple_undersampling(X_train, y_train, subsample_size=5000)
-    X_test, y_test = simple_undersampling(X_test, y_test, subsample_size=5000)
+    X_train, y_train = simple_undersampling(X_train, y_train, subsample_size=subsample_size)
+    X_test, y_test = simple_undersampling(X_test, y_test, subsample_size=subsample_size)
     # print('Target mean | train: {} test: {}'.format(y_train.mean(), y_test.mean()))
     # print('Dataset shape | train: {} test: {}'.format(X_train.shape, X_test.shape))
     forest = RandomForestClassifier(n_estimators=200, random_state=41, n_jobs=-1)
