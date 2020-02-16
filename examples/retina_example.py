@@ -23,7 +23,7 @@ print(retinal_spike_data.keys())
 # fstate, mstate = 'randomly_moving_bar', 'white_noise_checkerboard'
 fstate, mstate = 'repeated_natural_movie', 'unique_natural_movie'
 # %%
-group_split = GroupShuffleSplit(n_splits=1, test_size=0.5)
+group_split = GroupShuffleSplit(n_splits=1, test_size=0.7)
 X = np.hstack(
     [retinal_spike_data[fstate].series.values, retinal_spike_data[mstate].series.values]
 )
@@ -55,7 +55,7 @@ X_train, y_train = prepare_tsfresh_data(X_train, y_train)
 X_test, y_test = prepare_tsfresh_data(X_test, y_test)
 # %%
 thr = 4e4
-fstate, mstate = X_train[y_train == 0], X_train[y_train == 1]
+fstate, mstate = X_test[y_test == 0], X_test[y_test == 1]
 p.hist(fstate[fstate < thr].flatten(), bins=100, alpha=0.8, density=True)
 p.hist(mstate[mstate < thr].flatten(), bins=100, alpha=0.8, density=True)
 mpla.prettify((10, 8))
@@ -66,7 +66,7 @@ X_test_ts = vectorizer.transform(X_test)
 # %%
 
 preprocessing = TsfreshFeaturePreprocessorPipeline(
-    do_scaling=True, remove_low_variance=True
+    do_scaling=False, remove_low_variance=False
 ).construct_pipeline()
 preprocessing.fit(X_train_ts)
 X_train = preprocessing.transform(X_train_ts)
@@ -94,7 +94,7 @@ def random_forest_scores(X_train, X_test, y_train, y_test, subsample_size=6000):
 # %%
 trials = 20
 for trial in range(trials):
-    random_forest_scores(X_train, X_test, y_train, y_test, subsample_size=4000)
+    random_forest_scores(X_train, X_test, y_train, y_test, subsample_size=6000)
 
 # %%
 feature_names = [
@@ -111,4 +111,4 @@ X_test = X_test.loc[:, simple_baseline_features]
 # %%
 trials = 20
 for trial in range(trials):
-    random_forest_scores(X_train, X_test, y_train, y_test, subsample_size=4000)
+    random_forest_scores(X_train, X_test, y_train, y_test, subsample_size=6000)
