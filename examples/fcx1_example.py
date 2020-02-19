@@ -7,7 +7,8 @@ from addict import Dict
 from dataset_adapters import fcx1_dataset
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GroupShuffleSplit
-from tsfresh_baseline import tsfresh_fit_predict
+
+from pyspikelib.fit_predict import tsfresh_fit_predict
 
 warnings.filterwarnings('ignore')
 # %%

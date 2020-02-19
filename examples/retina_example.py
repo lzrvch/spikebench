@@ -5,9 +5,9 @@ import pandas as pd
 from addict import Dict
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GroupShuffleSplit
-from tsfresh_baseline import tsfresh_fit_predict
 
 from examples.dataset_adapters import retina_dataset
+from pyspikelib.fit_predict import tsfresh_fit_predict
 
 warnings.filterwarnings('ignore')
 # %%
