@@ -90,7 +90,9 @@ def simple_undersampling(
     )
     y_undersampled = np.array([0] * num_samples + [1] * num_samples)
     if subsample_size is not None:
-        sample_indices = np.random.choice(X_undersampled.shape[0], subsample_size)
+        sample_indices = np.random.choice(
+            X_undersampled.shape[0], int(subsample_size * X_undersampled.shape[0])
+        )
         X_undersampled, y_undersampled = (
             X_undersampled.iloc[sample_indices, :],
             y_undersampled[sample_indices],
