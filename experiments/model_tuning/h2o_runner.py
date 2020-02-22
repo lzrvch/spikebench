@@ -22,10 +22,10 @@ class H2ORunner:
         X_y_h['target'] = X_y_h['target'].asfactor()
         return X_y_h
 
-    def set_data(self, X_train, X_valid, X_test, y_train, y_valid, y_test):
-        self.h2o_frames['train'] = self.create_h2o_frame(X_train, y_train)
-        self.h2o_frames['valid'] = self.create_h2o_frame(X_valid, y_valid)
-        self.h2o_frames['test'] = self.create_h2o_frame(X_test, y_test)
+    def set_data(self, train_data, valid_data, test_data):
+        self.h2o_frames['train'] = self.create_h2o_frame(*train_data)
+        self.h2o_frames['valid'] = self.create_h2o_frame(*valid_data)
+        self.h2o_frames['test'] = self.create_h2o_frame(*test_data)
 
     def run(self, max_runtime_secs=10000, max_models=None):
         self.aml = H2OAutoML(
