@@ -1,7 +1,8 @@
-import h2o
-import pandas as pd
 import os.path as osp
 from pathlib import Path
+
+import h2o
+import pandas as pd
 from h2o.automl import H2OAutoML
 
 
