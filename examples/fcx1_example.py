@@ -12,6 +12,8 @@ from pyspikelib.fit_predict import tsfresh_fit_predict
 
 warnings.filterwarnings('ignore')
 # %%
+np.random.seed(0)
+
 run_config = {
     'window': 200,
     'step': 200,
@@ -40,5 +42,5 @@ X_train = pd.DataFrame({'series': X_train, 'groups': groups[train_index]})
 X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
 # %%
-forest = RandomForestClassifier(n_estimators=200, random_state=41, n_jobs=-1)
+forest = RandomForestClassifier(n_estimators=200, random_state=0, n_jobs=-1)
 tsfresh_fit_predict(forest, X_train, X_test, y_train, y_test, Dict(run_config))
