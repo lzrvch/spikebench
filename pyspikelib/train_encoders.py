@@ -19,6 +19,7 @@ from pyspikelib.base_transformers import NoFitMixin
 
 class ISIShuffleTransform(TransformerMixin, NoFitMixin):
     """Randomly permute ISIs in each spike train in-place"""
+
     def __init__(self):
         super().__init__()
 

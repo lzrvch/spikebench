@@ -29,9 +29,9 @@ run_config = Dict(run_config)
 dataset = Path('./data/')
 wake_spikes = fcx1_dataset(dataset / 'wake.parq')
 shuffler = ISIShuffleTransform()
-wake_spikes_shuffled = shuffler.transform(deepcopy(wake_spikes),
-                                          format='pandas',
-                                          delimiter=run_config.delimiter)
+wake_spikes_shuffled = shuffler.transform(
+    deepcopy(wake_spikes), format='pandas', delimiter=run_config.delimiter
+)
 # %%
 group_split = GroupShuffleSplit(n_splits=1, test_size=0.5)
 X = np.hstack([wake_spikes.series.values, wake_spikes_shuffled.series.values])

@@ -30,8 +30,7 @@ class H2ORunner:
 
     def run(self, max_runtime_secs=10000, max_models=None):
         self.aml = H2OAutoML(
-            max_runtime_secs=max_runtime_secs, max_models=max_models,
-            nfolds=0, seed=42
+            max_runtime_secs=max_runtime_secs, max_models=max_models, nfolds=0, seed=42
         )
         self.aml.train(
             y='target',
