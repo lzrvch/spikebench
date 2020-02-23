@@ -18,8 +18,9 @@ from pyspikelib.base_transformers import NoFitMixin
 
 
 class ISIShuffleTransform(TransformerMixin, NoFitMixin):
+    """Randomly permute ISIs in each spike train in-place"""
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
 
     @staticmethod
     def shuffle_along_axis(tensor, axis=-1):
@@ -38,10 +39,11 @@ class ISIShuffleTransform(TransformerMixin, NoFitMixin):
             return X
         for train_index, spike_train in enumerate(X.series.values):
             train = self.string_to_float_series(spike_train, delimiter=delimiter)
+            np.random.shuffle(train)
             shuffled_series = delimiter.join(
-                ['{:.2f}'.format(value) for value in np.random.shuffle(train)]
+                ['{:.2f}'.format(value) for value in train]
             )
-            X.series.iloc[train_index, :] = shuffled_series
+            X.series.iloc[train_index] = shuffled_series
         return X
 
 
