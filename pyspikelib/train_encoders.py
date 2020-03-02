@@ -41,7 +41,8 @@ class ISIShuffleTransform(TransformerMixin, NoFitMixin):
         for train_index, spike_train in enumerate(X.series.values):
             train = self.string_to_float_series(spike_train, delimiter=delimiter)
             np.random.shuffle(train)
-            shuffled_series = delimiter.join(
+            join_delimiter = ' ' if delimiter is None else delimiter
+            shuffled_series = join_delimiter.join(
                 ['{:.2f}'.format(value) for value in train]
             )
             X.series.iloc[train_index] = shuffled_series
