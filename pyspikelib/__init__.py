@@ -18,5 +18,9 @@ from .train_transformers import (
     TsfreshFeaturePreprocessorPipeline,
     TsfreshVectorizeTransform,
 )
-from .train_encoders import ISIShuffleTransform
+from .train_encoders import (
+    SpikeTrainTransform,
+    ISIShuffleTransform,
+    TrainBinarizationTransform,
+)
 from .utils import distribution_features_tsfresh_dict

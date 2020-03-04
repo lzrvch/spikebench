@@ -29,17 +29,15 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
     def string_to_float_series(string_series, delimiter=None):
         return np.array([float(value) for value in string_series.split(delimiter)])
 
-    @staticmethod
-    def numpy_transform(tensor, axis):
+    def numpy_transform(self, tensor, axis):
         raise NotImplementedError
 
-    @staticmethod
-    def single_train_transform(tensor):
+    def single_train_transform(self, tensor):
         raise NotImplementedError
 
     def transform(self, X, y=None, format='numpy', axis=-1, delimiter=None):
         if format == 'numpy':
-            X = self.numpy_transform(X, axis=axis)
+            X = self.numpy_transform(X, axis)
             return X
         join_delimiter = ' ' if delimiter is None else delimiter
         for train_index, spike_train in enumerate(X.series.values):
@@ -65,13 +63,11 @@ class ISIShuffleTransform(SpikeTrainTransform):
         for ndx in np.ndindex(shp):
             np.random.shuffle(b[ndx])
 
-    @staticmethod
-    def numpy_transform(tensor, axis=-1):
+    def numpy_transform(self, tensor, axis=-1):
         self.shuffle_along_axis(tensor, axis)
         return tensor
 
-    @staticmethod
-    def single_train_transform(tensor):
+    def single_train_transform(self, tensor):
         np.random.shuffle(tensor)
         return tensor
 
@@ -85,20 +81,17 @@ class TrainBinarizationTransform(SpikeTrainTransform):
         self.keep_counts = keep_spike_counts
         self.train_duration = train_duration
 
-    @staticmethod
-    def numpy_transform(tensor, axis=0):
-        saxis = [
-            samples_axis for samples_axis in range(tensor.ndim) if samples_axis != axis
-        ]
+    def numpy_transform(self, tensor, axis=1):
         return np.apply_along_axis(
-            partial(self.single_train_transform, axis=axis), saxis, tensor
+            partial(self.single_train_transform, axis=axis), axis, tensor
         )
 
-    @staticmethod
-    def single_train_transform(series, axis):
+    def single_train_transform(self, series, axis):
         spike_times = np.cumsum(series, axis)
         duration = (
-            spike_times.max() if self.train_duration is None else self.train_duration
+            spike_times.max()
+            if self.train_duration is None
+            else self.train_duration + spike_times.min()
         )
         return np.histogram(
             spike_times,
