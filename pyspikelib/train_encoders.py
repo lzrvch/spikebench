@@ -75,29 +75,57 @@ class ISIShuffleTransform(SpikeTrainTransform):
 class TrainBinarizationTransform(SpikeTrainTransform):
     """Turn an ISI series into a sequence of time bins with spike occurences"""
 
-    def __init__(self, bin_size, keep_spike_counts=True, train_duration=None):
+    def __init__(
+        self, bin_size, keep_spike_counts=True, train_duration=None, start_time=None
+    ):
         super().__init__()
         self.bin_size = bin_size
         self.keep_counts = keep_spike_counts
         self.train_duration = train_duration
+        self.start_time = start_time
+        self.fixed_size_output = (
+            self.start_time is not None and self.train_duration is not None
+        )
 
     def numpy_transform(self, tensor, axis=1):
-        return np.apply_along_axis(
-            partial(self.single_train_transform, axis=axis), axis, tensor
-        )
+        if self.fixed_size_output:
+            return np.apply_along_axis(
+                partial(self.single_train_transform, axis=axis), axis, tensor
+            )
+        else:
+            single_train_transform = partial(self.single_train_transform, axis=axis)
+            variable_length_transform = lambda series: list(
+                single_train_transform(series)
+            )
+            return np.apply_along_axis(variable_length_transform, axis, tensor)
 
     def single_train_transform(self, series, axis):
         spike_times = np.cumsum(series, axis)
+        start_time = spike_times.min() if self.start_time is None else self.start_time
         duration = (
             spike_times.max()
             if self.train_duration is None
-            else self.train_duration + spike_times.min()
+            else self.train_duration + start_time
         )
-        return np.histogram(
+        binarized_spike_train = np.histogram(
             spike_times,
             bins=int(duration / self.bin_size),
-            range=(spike_times.min(), duration),
+            range=(start_time, duration),
         )[0].astype(np.float32)
+        if not self.keep_counts:
+            binarized_spike_train = (binarized_spike_train > 0).astype(np.float32)
+        return binarized_spike_train
+
+
+class SpikeTimesToISITransform(SpikeTrainTransform):
+    def __init__(self):
+        super().__init__()
+
+    def numpy_transform(self, tensor, axis=1):
+        return np.diff(tensor, axis=axis)
+
+    def single_train_transform(self, tensor):
+        return np.diff(tensor)
 
 
 # ToDo: jitter, rate estimation ...
