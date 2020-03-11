@@ -13,8 +13,14 @@
 
 import numpy as np
 
-from functools import partial
+import elephant.statistics as spkstat
 from sklearn.base import TransformerMixin
+
+from quantities import ms
+from functools import partial
+from neo.core import SpikeTrain
+from sklearn.base import TransformerMixin
+from elephant.kernels import GaussianKernel
 
 from pyspikelib.base_transformers import NoFitMixin
 
@@ -40,6 +46,7 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
             X = self.numpy_transform(X, axis)
             return X
         join_delimiter = ' ' if delimiter is None else delimiter
+        # ToDo: multiprocessing for variable-length trains
         for train_index, spike_train in enumerate(X.series.values):
             train = self.string_to_float_series(spike_train, delimiter=delimiter)
             transfomed_train = self.single_train_transform(train)
@@ -128,4 +135,53 @@ class SpikeTimesToISITransform(SpikeTrainTransform):
         return np.diff(tensor)
 
 
-# ToDo: jitter, rate estimation ...
+class ISIToSpikeTimesTransform(SpikeTrainTransform):
+    def __init__(self):
+        super().__init__()
+
+    def numpy_transform(self, tensor, axis=1):
+        return np.cumsum(tensor, axis=axis)
+
+    def single_train_transform(self, tensor):
+        return np.cumsum(tensor)
+
+
+class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
+    def __init__(
+        self, kernel_width=None, isi_input=True, start_time=None, train_duration=None
+    ):
+        super().__init__()
+        self.kernel_width = kernel_width
+        self.isi_input = isi_input
+        self.start_time = start_time
+        self.train_duration = train_duration
+        self.fixed_size_output = (
+            self.start_time is not None and self.train_duration is not None
+        )
+
+    @staticmethod
+    def get_rate_estimate(spike_times):
+        train = SpikeTrain(spike_times * ms, t_stop=spike_times[-1])
+        kernel = GaussianKernel(sigma=width * ms)
+        rate = spkstat.instantaneous_rate(train, kernel=kernel, sampling_period=ms)
+        return np.array(rate)[:, 0]
+
+    def numpy_transform(self, tensor, axis=1):
+        if self.fixed_size_output:
+            return np.apply_along_axis(
+                partial(self.single_train_transform, axis=axis), axis, tensor
+            )
+        else:
+            single_train_transform = partial(self.single_train_transform, axis=axis)
+            variable_length_transform = lambda series: list(
+                single_train_transform(series)
+            )
+            return np.apply_along_axis(variable_length_transform, axis, tensor)
+
+    def single_train_transform(self, tensor, axis=-1):
+        if self.isi_input:
+            spike_times = np.cumsum(tensor, axis=axis)
+        return self.get_rate_estimate(spike_times)
+
+
+# ToDo: jitter transform
