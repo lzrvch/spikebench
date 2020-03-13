@@ -12,6 +12,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+import multiprocessing as mp
 
 import elephant.statistics as spkstat
 from sklearn.base import TransformerMixin
@@ -28,7 +29,8 @@ from pyspikelib.base_transformers import NoFitMixin
 class SpikeTrainTransform(TransformerMixin, NoFitMixin):
     """Base class for spike train transforms"""
 
-    def __init__(self):
+    def __init__(self, n_jobs=None):
+        self.n_jobs = mp.cpu_count() if n_jobs is None else n_jobs
         super().__init__()
 
     @staticmethod
@@ -46,14 +48,16 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
             X = self.numpy_transform(X, axis)
             return X
         join_delimiter = ' ' if delimiter is None else delimiter
-        # ToDo: multiprocessing for variable-length trains
-        for train_index, spike_train in enumerate(X.series.values):
+
+        def transform_spike_train(spike_train):
             train = self.string_to_float_series(spike_train, delimiter=delimiter)
             transfomed_train = self.single_train_transform(train)
-            transfomed_series = join_delimiter.join(
+            return join_delimiter.join(
                 ['{:.2f}'.format(value) for value in transfomed_train]
             )
-            X.series.iloc[train_index] = transfomed_series
+
+        pool = mp.Pool(self.n_jobs)
+        X.series.values = pool.map(transform_spike_train, X.series.values)
         return X
 
 
@@ -148,22 +152,38 @@ class ISIToSpikeTimesTransform(SpikeTrainTransform):
 
 class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
     def __init__(
-        self, kernel_width=None, isi_input=True, start_time=None, train_duration=None
+        self,
+        kernel_width=None,
+        isi_input=True,
+        start_time=None,
+        train_duration=None,
+        sampling_period=None,
     ):
         super().__init__()
         self.kernel_width = kernel_width
         self.isi_input = isi_input
         self.start_time = start_time
         self.train_duration = train_duration
+        self.sampling_period = sampling_period
         self.fixed_size_output = (
             self.start_time is not None and self.train_duration is not None
         )
 
     @staticmethod
-    def get_rate_estimate(spike_times):
-        train = SpikeTrain(spike_times * ms, t_stop=spike_times[-1])
-        kernel = GaussianKernel(sigma=width * ms)
-        rate = spkstat.instantaneous_rate(train, kernel=kernel, sampling_period=ms)
+    def get_rate_estimate(
+        spike_times, kernel_width, start_time, train_duration, sampling_period
+    ):
+        t_start = spike_times[0] if start_time is None else start_time
+        t_stop = spike_times[-1] if train_duration is None else t_start + train_duration
+        train = SpikeTrain(
+            spike_times[(spike_times > t_start) & (spike_times < t_stop)] * ms,
+            t_start=t_start,
+            t_stop=t_stop,
+        )
+        kernel = GaussianKernel(sigma=kernel_width * ms)
+        rate = spkstat.instantaneous_rate(
+            train, kernel=kernel, sampling_period=sampling_period * ms
+        )
         return np.array(rate)[:, 0]
 
     def numpy_transform(self, tensor, axis=1):
@@ -173,15 +193,24 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
             )
         else:
             single_train_transform = partial(self.single_train_transform, axis=axis)
-            variable_length_transform = lambda series: list(
-                single_train_transform(series)
+            variable_length_transform = lambda series: ' '.join(
+                [
+                    '{:2f}'.format(value)
+                    for value in list(single_train_transform(series))
+                ]
             )
             return np.apply_along_axis(variable_length_transform, axis, tensor)
 
     def single_train_transform(self, tensor, axis=-1):
         if self.isi_input:
             spike_times = np.cumsum(tensor, axis=axis)
-        return self.get_rate_estimate(spike_times)
+        return self.get_rate_estimate(
+            spike_times,
+            self.kernel_width,
+            self.start_time,
+            self.train_duration,
+            self.sampling_period,
+        )
 
 
 # ToDo: jitter transform

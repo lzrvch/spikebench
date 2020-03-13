@@ -22,5 +22,8 @@ from .train_encoders import (
     SpikeTrainTransform,
     ISIShuffleTransform,
     TrainBinarizationTransform,
+    SpikeTimesToISITransform,
+    ISIToSpikeTimesTransform,
+    SpikeTrainToFiringRateTransform,
 )
 from .utils import distribution_features_tsfresh_dict
