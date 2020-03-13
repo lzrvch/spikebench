@@ -1,3 +1,6 @@
+import logging
+import numpy as np
+
 from sklearn.metrics import roc_auc_score, accuracy_score
 
 from pyspikelib import TrainNormalizeTransform
@@ -8,6 +11,7 @@ from pyspikelib.utils import simple_undersampling
 
 def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test, config):
     classifier_scores = {'full_features': {}, 'simple_baseline': {}}
+    logging.info('Started time series vectorization')
     X_train, y_train = tsfresh_vectorize(X_train, y_train, config)
     X_test, y_test = tsfresh_vectorize(X_test, y_test, config)
     preprocessing = TsfreshFeaturePreprocessorPipeline(
@@ -16,8 +20,11 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test, config):
     preprocessing.fit(X_train)
     X_train = preprocessing.transform(X_train)
     X_test = preprocessing.transform(X_test)
-    print('Dataset size: train {}, test {}'.format(X_train.shape, X_test.shape))
-    print('Average target: train {}, test {}'.format(y_train.mean(), y_test.mean()))
+    logging.info('Dataset size: train {}, test {}'.format(X_train.shape, X_test.shape))
+    logging.info(
+        'Average target: train {}, test {}'.format(y_train.mean(), y_test.mean())
+    )
+    logging.info('Training classifiers on data subsamples for {} trials'.format(config.trials))
     for _ in range(config.trials):
         scores = eval_classifier_scores(
             model,
@@ -60,6 +67,17 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test, config):
                 classifier_scores['simple_baseline'][key] = [scores[key]]
             else:
                 classifier_scores['simple_baseline'][key].append(scores[key])
+    for metric in classifier_scores['simple_baseline']:
+        logging.info(
+            'Full feature set mean classification score ({}) {}'.format(
+                metric, np.mean(classifier_scores['full_features'][metric])
+            )
+        )
+        logging.info(
+            'Simple feature set mean classification score ({}) {}'.format(
+                metric, np.mean(classifier_scores['simple_baseline'][metric])
+            )
+        )
     return classifier_scores
 
 
@@ -68,7 +86,7 @@ def tsfresh_vectorize(X, y, config):
     normalizer = TrainNormalizeTransform(
         window=config.window, step=config.step, n_samples=n_samples
     )
-    vectorizer = TsfreshVectorizeTransform(feature_set=None)
+    vectorizer = TsfreshVectorizeTransform(feature_set=config.feature_set)
     X, y = normalizer.transform(X, y, delimiter=config.delimiter)
     X = vectorizer.transform(X)
     return X, y
