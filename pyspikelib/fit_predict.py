@@ -24,7 +24,9 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test, config):
     logging.info(
         'Average target: train {}, test {}'.format(y_train.mean(), y_test.mean())
     )
-    logging.info('Training classifiers on data subsamples for {} trials'.format(config.trials))
+    logging.info(
+        'Training classifiers on data subsamples for {} trials'.format(config.trials)
+    )
     for _ in range(config.trials):
         scores = eval_classifier_scores(
             model,
