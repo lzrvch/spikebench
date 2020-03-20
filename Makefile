@@ -1,5 +1,5 @@
 install:
-	python setup.py
+	pip install .
 
 black:
 	black -S ./pyspikelib ./examples

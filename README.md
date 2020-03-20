@@ -21,8 +21,12 @@ Please cite this work in your publications if it helps your research:
 ```
 
 # Usage
+Install the package by running
+```
+make install
+```
 
-After downloading the retinal neuronal activity dataset (see details below) one can run the scripts in the examples folder e.g.
+After downloading the retinal neuronal activity dataset (see details below; similarly for other datasets) one can run the scripts in the examples folder e.g.
 
 ```
 python examples/retina_example.py --seed 0 --feature-set "no_entropy"
