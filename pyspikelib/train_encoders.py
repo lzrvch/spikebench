@@ -85,7 +85,7 @@ class TrainBinarizationTransform(SpikeTrainTransform):
     """Turn an ISI series into a sequence of time bins with spike occurences"""
 
     def __init__(
-            self, bin_size, keep_spike_counts=True, train_duration=None, start_time=None
+        self, bin_size, keep_spike_counts=True, train_duration=None, start_time=None
     ):
         super().__init__()
         self.bin_size = bin_size
@@ -93,7 +93,7 @@ class TrainBinarizationTransform(SpikeTrainTransform):
         self.train_duration = train_duration
         self.start_time = start_time
         self.fixed_size_output = (
-                self.start_time is not None and self.train_duration is not None
+            self.start_time is not None and self.train_duration is not None
         )
 
     def numpy_transform(self, tensor, axis=1):
@@ -103,9 +103,10 @@ class TrainBinarizationTransform(SpikeTrainTransform):
             )
         else:
             single_train_transform = partial(self.single_train_transform, axis=axis)
-            variable_length_transform = lambda series: list(
-                single_train_transform(series)
-            )
+
+            def variable_length_transform(series):
+                return list(single_train_transform(series))
+
             return np.apply_along_axis(variable_length_transform, axis, tensor)
 
     def single_train_transform(self, series, axis):
@@ -150,12 +151,12 @@ class ISIToSpikeTimesTransform(SpikeTrainTransform):
 
 class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
     def __init__(
-            self,
-            kernel_width=None,
-            isi_input=True,
-            start_time=None,
-            train_duration=None,
-            sampling_period=None,
+        self,
+        kernel_width=None,
+        isi_input=True,
+        start_time=None,
+        train_duration=None,
+        sampling_period=None,
     ):
         super().__init__()
         self.kernel_width = kernel_width
@@ -164,12 +165,12 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
         self.train_duration = train_duration
         self.sampling_period = sampling_period
         self.fixed_size_output = (
-                self.start_time is not None and self.train_duration is not None
+            self.start_time is not None and self.train_duration is not None
         )
 
     @staticmethod
     def get_rate_estimate(
-            spike_times, kernel_width, start_time, train_duration, sampling_period
+        spike_times, kernel_width, start_time, train_duration, sampling_period
     ):
         t_start = spike_times[0] if start_time is None else start_time
         t_stop = spike_times[-1] if train_duration is None else t_start + train_duration
@@ -191,12 +192,15 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
             )
         else:
             single_train_transform = partial(self.single_train_transform, axis=axis)
-            variable_length_transform = lambda series: ' '.join(
-                [
-                    '{:2f}'.format(value)
-                    for value in list(single_train_transform(series))
-                ]
-            )
+
+            def variable_length_transform(series):
+                return ' '.join(
+                    [
+                        '{:2f}'.format(value)
+                        for value in list(single_train_transform(series))
+                    ]
+                )
+
             return np.apply_along_axis(variable_length_transform, axis, tensor)
 
     def single_train_transform(self, tensor, axis=-1):
@@ -209,5 +213,6 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
             self.train_duration,
             self.sampling_period,
         )
+
 
 # ToDo: jitter transform

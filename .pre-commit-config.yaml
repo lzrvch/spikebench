@@ -14,12 +14,4 @@ repos:
     rev: 8f9b4931b9a28896fb43edccb23016a7540f5b82
     hooks:
     -   id: flake8
--   repo: https://github.com/codespell-project/codespell
-    rev: v1.16.0
-    hooks:
-    -   id: codespell
-        name: codespell
-        description: Checks for common misspellings in text files.
-        entry: codespell
-        language: python
-        types: [text]
+        entry: flake8 --max-line-length 120

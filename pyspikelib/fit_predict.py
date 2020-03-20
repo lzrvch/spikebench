@@ -95,13 +95,13 @@ def tsfresh_vectorize(X, y, config):
 
 
 def eval_classifier_scores(
-        model,
-        X_train,
-        X_test,
-        y_train,
-        y_test,
-        train_subsample_factor=0.7,
-        test_subsample_factor=0.7,
+    model,
+    X_train,
+    X_test,
+    y_train,
+    y_test,
+    train_subsample_factor=0.7,
+    test_subsample_factor=0.7,
 ):
     X_train, y_train = simple_undersampling(
         X_train, y_train, subsample_size=train_subsample_factor

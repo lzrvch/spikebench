@@ -146,11 +146,11 @@ def _select_features(X, feature_list=None):
 
 class TsfreshFeaturePreprocessorPipeline:
     def __init__(
-            self,
-            impute=True,
-            do_scaling=True,
-            remove_low_variance=True,
-            keep_features_list=None,
+        self,
+        impute=True,
+        do_scaling=True,
+        remove_low_variance=True,
+        keep_features_list=None,
     ):
         self.impute = impute
         self.do_scaling = do_scaling

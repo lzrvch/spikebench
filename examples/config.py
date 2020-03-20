@@ -76,7 +76,8 @@ class Config(Dict):
                     arg for arg in vars(args) if arg not in argparser.seen_actions
                 }
             else:
-                # this will fail if we explicitly provide default argument in CLI
+                # this will fail if we explicitly provide default argument in
+                # CLI
                 known_args = argparser.parse_known_args()
                 default_args = {k for k, v in vars(args).items() if known_args[k] == v}
         else:
@@ -87,8 +88,6 @@ class Config(Dict):
                 self[key] = value
 
     def update_from_env(self, key_to_env_dict=None):
-        if key_to_env_dict is None:
-            key_to_env_dict = _DEFAULT_KEY_TO_ENV
         for k, v in key_to_env_dict:
             if v in os.environ:
                 self[k] = int(os.environ[v])

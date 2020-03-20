@@ -21,15 +21,15 @@ from .mpladeq import beautify_mpl, prettify
 
 
 def feature_scatter_plot(
-        X,
-        y,
-        features,
-        samples=1000,
-        legend=None,
-        xaxis=None,
-        yaxis=None,
-        figsize=(15, 8),
-        alpha=0.3,
+    X,
+    y,
+    features,
+    samples=1000,
+    legend=None,
+    xaxis=None,
+    yaxis=None,
+    figsize=(15, 8),
+    alpha=0.3,
 ):
     sns.set(palette='Set2', style='ticks', font_scale=1.7)
 
@@ -65,17 +65,17 @@ def feature_scatter_plot(
 
 
 def decompose_scatter_plot(
-        X,
-        y,
-        features,
-        reducer,
-        samples=1000,
-        legend=None,
-        xaxis=None,
-        yaxis=None,
-        supervised=False,
-        figsize=(15, 8),
-        alpha=0.3,
+    X,
+    y,
+    features,
+    reducer,
+    samples=1000,
+    legend=None,
+    xaxis=None,
+    yaxis=None,
+    supervised=False,
+    figsize=(15, 8),
+    alpha=0.3,
 ):
     sns.set(palette='Set2', style='ticks', font_scale=1.7)
 

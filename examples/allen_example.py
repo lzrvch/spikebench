@@ -52,7 +52,7 @@ def main(argv):
     group_split = GroupShuffleSplit(n_splits=1, test_size=0.5)
     X = np.hstack([vip_spike_data.series.values, sst_spike_data.series.values])
     y = np.hstack(
-        [np.ones(vip_spike_data.shape[0]), np.zeros(sst_spike_data.shape[0]), ]
+        [np.ones(vip_spike_data.shape[0]), np.zeros(sst_spike_data.shape[0])]
     )
     groups = np.hstack([vip_spike_data.groups.values, sst_spike_data.groups.values])
 

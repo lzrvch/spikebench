@@ -147,7 +147,8 @@ def oopsi_est_par(n, C, F, P):
     D = F - a * C - b
     mse = np.dot(D.T, D)
     sig = np.sqrt(mse / T)  # RMS of residual error
-    lam = T / (dt * np.sum(n))  # inverse of firing rate, n should be normalized
+    # inverse of firing rate, n should be normalized
+    lam = T / (dt * np.sum(n))
     # packup
     P = {
         'T': T,
@@ -194,7 +195,7 @@ def fast(F, dt=0.02, iter_max=1, update=True):
         # if lik doesnt change much (relatively),or return to a previous state
         ml[i] = post
         if np.abs((ml[i] - ml[i - 1]) / ml[i]) < 1e-3 or any(
-                np.abs(ml[:i] - ml[i]) < 1e-5
+            np.abs(ml[:i] - ml[i]) < 1e-5
         ):
             # imax = i
             break
