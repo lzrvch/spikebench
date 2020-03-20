@@ -11,6 +11,7 @@ from scipy.signal import lfilter, detrend
 from scipy.sparse import spdiags, eye
 from scipy.sparse.linalg.dsolve import linsolve
 
+
 # generate Fluorescence (F), Calcium2+ (C) and Spikes (N)
 def fcn_generate(T, dt=0.02, lam=0.1, tau=1.5, sigma=0.1):
     """
@@ -45,6 +46,8 @@ this implementation (and jovo's MATLAB) utilize sparse matrix for
 speedup. using scipy.sparse.spdiags and scipy.sparse.eye, Hessian
 equation Hd=g is solved via linsolve.spsolve.
 """
+
+
 # return mean absolute deviation MAD of F
 def oopsi_mad(F):
     return np.median(np.abs(F - np.median(F)))
@@ -191,7 +194,7 @@ def fast(F, dt=0.02, iter_max=1, update=True):
         # if lik doesnt change much (relatively),or return to a previous state
         ml[i] = post
         if np.abs((ml[i] - ml[i - 1]) / ml[i]) < 1e-3 or any(
-            np.abs(ml[:i] - ml[i]) < 1e-5
+                np.abs(ml[:i] - ml[i]) < 1e-5
         ):
             # imax = i
             break

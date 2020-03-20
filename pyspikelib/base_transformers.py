@@ -56,8 +56,8 @@ class DFLowVarianceRemoval(TransformerMixin, NoFitMixin):
 
     def fit(self, X, y=None):
         self.high_variance_features = X.loc[
-            :, (X.std() / (self.safety_eps + X.mean())).abs() > self.variance_threshold
-        ].columns.values
+                                      :, (X.std() / (self.safety_eps + X.mean())).abs() > self.variance_threshold
+                                      ].columns.values
         return self
 
     def transform(self, X):

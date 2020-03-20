@@ -4,7 +4,9 @@ By [Ivan Lazarevich](https://lazarevi.ch)
 
 PySpikeLib allows building machine learning models on time series representations of neuronal spike trains. For more details, please refer to our [arXiv paper](https://arxiv.org/abs/1810.03855).
 
-<img src="https://i.imgur.com/7xqACVK.jpg" alt="drawing" width="500"/>
+<p align="center">
+    <img src="https://i.imgur.com/7xqACVK.jpg" alt="drawing" width="500"/>
+</p>
 
 # Citing PySpikeLib
 Please cite this wotk in your publications if it helps your research:

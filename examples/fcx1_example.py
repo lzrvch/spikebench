@@ -1,16 +1,15 @@
-import sys
 import logging
+import sys
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-from pathlib import Path
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GroupShuffleSplit
 
-from examples.dataset_adapters import fcx1_dataset
 from examples.config import get_common_argument_parser, Config
+from examples.dataset_adapters import fcx1_dataset
 from pyspikelib.fit_predict import tsfresh_fit_predict
 
 warnings.filterwarnings('ignore')

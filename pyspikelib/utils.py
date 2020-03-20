@@ -77,7 +77,7 @@ def train_test_common_features(train_df, test_df):
 
 
 def simple_undersampling(
-    X, y, dominant_class_label=1, subsample_size=None, pandas=True
+        X, y, dominant_class_label=1, subsample_size=None, pandas=True
 ):
     X = pd.DataFrame(X) if not pandas else X
     num_samples = (y != dominant_class_label).sum()

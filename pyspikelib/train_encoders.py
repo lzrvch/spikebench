@@ -11,17 +11,15 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
 import multiprocessing as mp
+from functools import partial
 
 import elephant.statistics as spkstat
-from sklearn.base import TransformerMixin
-
-from quantities import ms
-from functools import partial
-from neo.core import SpikeTrain
-from sklearn.base import TransformerMixin
+import numpy as np
 from elephant.kernels import GaussianKernel
+from neo.core import SpikeTrain
+from quantities import ms
+from sklearn.base import TransformerMixin
 
 from pyspikelib.base_transformers import NoFitMixin
 
@@ -87,7 +85,7 @@ class TrainBinarizationTransform(SpikeTrainTransform):
     """Turn an ISI series into a sequence of time bins with spike occurences"""
 
     def __init__(
-        self, bin_size, keep_spike_counts=True, train_duration=None, start_time=None
+            self, bin_size, keep_spike_counts=True, train_duration=None, start_time=None
     ):
         super().__init__()
         self.bin_size = bin_size
@@ -95,7 +93,7 @@ class TrainBinarizationTransform(SpikeTrainTransform):
         self.train_duration = train_duration
         self.start_time = start_time
         self.fixed_size_output = (
-            self.start_time is not None and self.train_duration is not None
+                self.start_time is not None and self.train_duration is not None
         )
 
     def numpy_transform(self, tensor, axis=1):
@@ -152,12 +150,12 @@ class ISIToSpikeTimesTransform(SpikeTrainTransform):
 
 class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
     def __init__(
-        self,
-        kernel_width=None,
-        isi_input=True,
-        start_time=None,
-        train_duration=None,
-        sampling_period=None,
+            self,
+            kernel_width=None,
+            isi_input=True,
+            start_time=None,
+            train_duration=None,
+            sampling_period=None,
     ):
         super().__init__()
         self.kernel_width = kernel_width
@@ -166,12 +164,12 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
         self.train_duration = train_duration
         self.sampling_period = sampling_period
         self.fixed_size_output = (
-            self.start_time is not None and self.train_duration is not None
+                self.start_time is not None and self.train_duration is not None
         )
 
     @staticmethod
     def get_rate_estimate(
-        spike_times, kernel_width, start_time, train_duration, sampling_period
+            spike_times, kernel_width, start_time, train_duration, sampling_period
     ):
         t_start = spike_times[0] if start_time is None else start_time
         t_stop = spike_times[-1] if train_duration is None else t_start + train_duration
@@ -211,6 +209,5 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
             self.train_duration,
             self.sampling_period,
         )
-
 
 # ToDo: jitter transform

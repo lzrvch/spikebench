@@ -16,7 +16,6 @@ import scipy.signal as signal
 
 import pyspikelib.oopsi as oopsi
 from pyspikelib import SpikeTrainTransform
-from sklearn.base import TransformerMixin, BaseEstimator
 
 
 class SmoothingTransform(SpikeTrainTransform):
@@ -46,7 +45,7 @@ class SmoothingTransform(SpikeTrainTransform):
                 '"hamming", "bartlett", "blackman"'
             )
 
-        s = np.r_[x[window_len - 1 : 0 : -1], x, x[-2 : -window_len - 1 : -1]]
+        s = np.r_[x[window_len - 1: 0: -1], x, x[-2: -window_len - 1: -1]]
         if window == 'flat':  # moving average
             w = np.ones(window_len, 'd')
         else:
@@ -107,7 +106,6 @@ class MedianFilterDetrender(SpikeTrainTransform):
     """
 
     def __init__(self, window=101, peak_std_threshold=4.0):
-
         self.window = window
         self.peak_std_threshold = peak_std_threshold
         self.mad_constant = 1.4826
