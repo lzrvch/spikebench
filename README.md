@@ -9,7 +9,7 @@ PySpikeLib allows building machine learning models on time series representation
 </p>
 
 # Citing PySpikeLib
-Please cite this wotk in your publications if it helps your research:
+Please cite this work in your publications if it helps your research:
 
 ```
 @article{lazarevich2020neural,
