@@ -8,7 +8,7 @@ By [Ivan Lazarevich](https://lazarevi.ch)
     <img src="https://i.imgur.com/7xqACVK.jpg" alt="drawing" width="500"/>
 </p>
 
-# Citing pyspikelib
+## Citing pyspikelib
 Please cite this work in your publications if it helps your research:
 
 ```
@@ -20,7 +20,7 @@ Please cite this work in your publications if it helps your research:
 }
 ```
 
-# Usage
+## Usage
 Install the package by running
 ```
 make install
@@ -32,7 +32,7 @@ After downloading the retinal neuronal activity dataset (see details below; simi
 python examples/retina_example.py --seed 0 --feature-set "no_entropy"
 ```
 
-# Disclaimer: dataset sources
+## Disclaimer: dataset sources
 
   - fcx-1 dataset is taken from the [CRCNS database](http://crcns.org/data-sets/fcx/fcx-1/about-fcx-1). The processed CRNCS fcx-1 data from the example can be downloaded [via this link](https://drive.google.com/open?id=1fQKpYPHmenob692YZaG1P7YKWCYaTw19) (filesize is approximately 26 Mb).
   - example of retinal ganglion cell activity classification is based on [the published dataset](https://figshare.com/articles/Multi-electrode_retinal_ganglion_cell_population_spiking_data/10290569)
