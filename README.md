@@ -32,7 +32,7 @@ After downloading the retinal neuronal activity dataset (see details below; simi
 python examples/retina_example.py --seed 0 --feature-set "no_entropy"
 ```
 
-# Dataset sources
+# Disclaimer: dataset sources
 
   - fcx-1 dataset is taken from the [CRCNS database](http://crcns.org/data-sets/fcx/fcx-1/about-fcx-1). The processed CRNCS fcx-1 data from the example can be downloaded [via this link](https://drive.google.com/open?id=1fQKpYPHmenob692YZaG1P7YKWCYaTw19) (filesize is approximately 26 Mb).
   - example of retinal ganglion cell activity classification is based on [the published dataset](https://figshare.com/articles/Multi-electrode_retinal_ganglion_cell_population_spiking_data/10290569)
