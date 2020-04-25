@@ -1,11 +1,11 @@
 import logging
-import numpy as np
 
+import numpy as np
 from sklearn.metrics import roc_auc_score, accuracy_score
 
 from pyspikelib import TrainNormalizeTransform
-from pyspikelib import TsfreshVectorizeTransform
 from pyspikelib import TsfreshFeaturePreprocessorPipeline
+from pyspikelib import TsfreshVectorizeTransform
 from pyspikelib.utils import simple_undersampling
 
 

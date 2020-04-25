@@ -13,10 +13,10 @@
 
 import matplotlib.pylab as plt
 import numpy as np
-import seaborn as sns
 import pandas as pd
-
+import seaborn as sns
 from matplotlib.lines import Line2D
+
 from .mpladeq import beautify_mpl, prettify
 
 

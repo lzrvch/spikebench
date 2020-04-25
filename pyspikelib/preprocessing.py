@@ -12,11 +12,11 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+import pandas as pd
 import scipy.signal as signal
 
 import pyspikelib.oopsi as oopsi
 from pyspikelib import SpikeTrainTransform
-from sklearn.base import TransformerMixin, BaseEstimator
 
 
 class SmoothingTransform(SpikeTrainTransform):
@@ -40,13 +40,13 @@ class SmoothingTransform(SpikeTrainTransform):
         if window_len < 3:
             return x
 
-        if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
             raise ValueError(
                 'window must be one of "flat", "hanning",'
                 '"hamming", "bartlett", "blackman"'
             )
 
-        s = np.r_[x[window_len - 1 : 0 : -1], x, x[-2 : -window_len - 1 : -1]]
+        s = np.r_[x[window_len-1:0:-1], x, x[-2:-window_len - 1:-1]]
         if window == 'flat':  # moving average
             w = np.ones(window_len, 'd')
         else:
@@ -107,13 +107,11 @@ class MedianFilterDetrender(SpikeTrainTransform):
     """
 
     def __init__(self, window=101, peak_std_threshold=4.0):
-
         self.window = window
         self.peak_std_threshold = peak_std_threshold
         self.mad_constant = 1.4826
 
-    @staticmethod
-    def _robust_std(x):
+    def _robust_std(self, x):
         '''Robust estimate of std
         '''
         MAD = np.median(np.abs(x - np.median(x)))
@@ -124,7 +122,7 @@ class MedianFilterDetrender(SpikeTrainTransform):
         X_new = X.copy()
         for col in X.columns:
             tmp_data = X[col].values.astype(np.double)
-            mf = medfilt(tmp_data, self.window)
+            mf = signal.medfilt(tmp_data, self.window)
             mf = np.minimum(mf, self.peak_std_threshold * self._robust_std(mf))
             self.fit_params[col] = dict(mf=mf)
             X_new[col] = tmp_data - mf
@@ -189,8 +187,11 @@ class Normalize(SpikeTrainTransform):
         sampling_rate = np.diff(trace.index).mean()
         window = int(np.ceil(window / sampling_rate))
 
-        # suggest 8% in literature, but this doesnt work well for our data, use median
-        p = lambda x: np.percentile(x, percentile)
+        # suggest 8% in literature, but this doesnt work well for our data, use
+        # median
+        def p(x):
+            return np.percentile(x, percentile)
+
         baseline = trace.rolling(window=window, center=True).apply(func=p)
         baseline = baseline.fillna(method='bfill')
         baseline = baseline.fillna(method='ffill')

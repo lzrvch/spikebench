@@ -77,7 +77,8 @@ def fcx1_dataset(file):
 
 
 def spikes_dict_to_df(spikes_dict):
-    stringify = lambda array: '{}'.format(list(array))[1:-1]
+    def stringify(array):
+        return '{}'.format(list(array))[1:-1]
 
     spikes = [
         (spikes_dict['groups'][index], stringify(value))

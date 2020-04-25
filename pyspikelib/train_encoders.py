@@ -11,17 +11,15 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
 import multiprocessing as mp
+from functools import partial
 
 import elephant.statistics as spkstat
-from sklearn.base import TransformerMixin
-
-from quantities import ms
-from functools import partial
-from neo.core import SpikeTrain
-from sklearn.base import TransformerMixin
+import numpy as np
 from elephant.kernels import GaussianKernel
+from neo.core import SpikeTrain
+from quantities import ms
+from sklearn.base import TransformerMixin
 
 from pyspikelib.base_transformers import NoFitMixin
 
@@ -105,9 +103,10 @@ class TrainBinarizationTransform(SpikeTrainTransform):
             )
         else:
             single_train_transform = partial(self.single_train_transform, axis=axis)
-            variable_length_transform = lambda series: list(
-                single_train_transform(series)
-            )
+
+            def variable_length_transform(series):
+                return list(single_train_transform(series))
+
             return np.apply_along_axis(variable_length_transform, axis, tensor)
 
     def single_train_transform(self, series, axis):
@@ -193,12 +192,15 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
             )
         else:
             single_train_transform = partial(self.single_train_transform, axis=axis)
-            variable_length_transform = lambda series: ' '.join(
-                [
-                    '{:2f}'.format(value)
-                    for value in list(single_train_transform(series))
-                ]
-            )
+
+            def variable_length_transform(series):
+                return ' '.join(
+                    [
+                        '{:2f}'.format(value)
+                        for value in list(single_train_transform(series))
+                    ]
+                )
+
             return np.apply_along_axis(variable_length_transform, axis, tensor)
 
     def single_train_transform(self, tensor, axis=-1):
