@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from scipy.io import loadmat
 
+from .utils import rtf_to_text
+
 
 def pasteur_dataset(datapath):
     spikes = {'groups': [], 'series': []}
@@ -17,6 +19,34 @@ def pasteur_dataset(datapath):
                 np.diff([float(val) for val in train.split(',')[1:]])
             )
     return spikes_dict_to_df(spikes)
+
+
+def pasteur_calcium_dataset(datapath):
+    calcium_traces = {'groups': [], 'series': [], 'timespan': []}
+    for animal_directory in glob(str(datapath) + '/*/'):
+        calcium_traces['groups'].append(animal_directory)
+        metadata_file = glob(animal_directory + '*parameters*')
+        if not metadata_file:
+            timespan = None
+        else:
+            with open(metadata_file[0], 'r') as f:
+                for line in f.readlines():
+                    if 'rtf' in metadata_file[0]:
+                        line = rtf_to_text(line)
+                    else:
+                        pass
+                    if 't' in line:
+                        timestamp = line.split('=')[1]
+                        if 'sec' in timestamp:
+                            timestamp = timestamp.split('sec')[0]
+                        timespan = float(timestamp)
+        calcium_traces['timespan'].append(timespan)
+        traces_df = []
+        for file in glob(animal_directory + '*xls'):
+            traces_df.append(pd.read_csv(file, delimiter='\t', index_col=0))
+
+        calcium_traces['series'].append(traces_df)
+    return calcium_traces
 
 
 def allen_dataset(datapath):

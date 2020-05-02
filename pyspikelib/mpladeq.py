@@ -88,6 +88,7 @@ def boxplot(data, x, y, figsize=(10, 8), xticklabels=None, savefile=None):
     for i, artist in enumerate(ax.artists):
         # Set the linecolor on the artist to the facecolor, and set the facecolor to None
         # col = artist.get_facecolor()
+        col = (0.0, 0.0, 0.0)
         artist.set_edgecolor((0.0, 0.0, 0.0))
         artist.set_facecolor('None')
 
