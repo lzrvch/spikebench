@@ -47,6 +47,7 @@ INSTALL_REQUIRES = [
     'elephant',
     'tsfresh',
     'scikit_learn',
+    'psutil'
 ]
 
 EXTRAS_REQUIRE = {'tests': ['pytest'], 'docs': []}
