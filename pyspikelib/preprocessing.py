@@ -75,23 +75,27 @@ class SmoothingTransform(SpikeTrainTransform):
 class OOPSITransform(SpikeTrainTransform):
     """Apply OOPSI algorithm to traces"""
 
-    def __init__(self, dt_factor=1e-1, max_iters=500, fps=None):
+    def __init__(self, dt_factor=1e-1, max_iters=500, timespan=None):
         super().__init__()
         self.dt_factor = dt_factor
         self.max_iters = max_iters
-        self.fps = fps
+        self.timespan = timespan
 
     @staticmethod
     def apply_oopsi(x, fps, dt_factor, max_iters):
         d, trace = oopsi.fast(x, dt=dt_factor / fps, iter_max=max_iters)
         return trace
 
+    def set_params(self, timespan):
+        self.timespan = timespan
+
     def numpy_transform(self, tensor, axis=1):
+        self.fps = tensor.shape[1] / self.timespan
         return np.apply_along_axis(self.single_train_transform, axis, tensor)
-        return tensor
 
     def single_train_transform(self, tensor):
-        return self.apply_oopsi(tensor, self.fps, self.dt_factor, self.max_iters)
+        return self.apply_oopsi(tensor, self.fps,
+                                self.dt_factor, self.max_iters)
 
 
 class MedianFilterDetrender(SpikeTrainTransform):
@@ -195,6 +199,7 @@ class Normalize(SpikeTrainTransform):
         baseline = trace.rolling(window=window, center=True).apply(func=p)
         baseline = baseline.fillna(method='bfill')
         baseline = baseline.fillna(method='ffill')
+
         dF = trace - baseline
         dFF = dF / baseline
 
