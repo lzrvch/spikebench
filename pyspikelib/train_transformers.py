@@ -13,6 +13,7 @@
 
 from functools import partial
 
+import psutil
 import numpy as np
 import pandas as pd
 import tsfresh.utilities.dataframe_functions as tsfresh_utils
@@ -29,6 +30,9 @@ from pyspikelib.base_transformers import (
     DFStandardScaler,
     DFLowVarianceRemoval,
 )
+
+
+CPU_COUNT = psutil.cpu_count(logical=True)
 
 
 class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
@@ -72,7 +76,7 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
 
 
 class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
-    def __init__(self, to_file=None, feature_set=None, n_jobs=32, verbose=True):
+    def __init__(self, to_file=None, feature_set=None, n_jobs=CPU_COUNT, verbose=True):
         self.to_file = to_file
         self.feature_set = feature_set
         self.n_jobs = n_jobs

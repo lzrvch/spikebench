@@ -36,20 +36,20 @@ LONG_DESCRIPTION_CONTENT_TYPE = 'text/markdown'
 
 INSTALL_REQUIRES = [
     'addict',
-    'fastparquet',
-    'quantities==0.12.3',
-    'neo==0.7.1',
-    'matplotlib==3.1.0',
-    'numpy==1.16.4',
-    'seaborn==0.9.0',
-    'tqdm==4.32.2',
-    'pandas==0.25.3',
-    'elephant==0.6.2',
-    'tsfresh==0.13.0',
-    'scikit_learn==0.22.1',
+    'quantities',
+    'neo',
+    'matplotlib',
+    'numpy',
+    'seaborn',
+    'tqdm',
+    'pandas',
+    'elephant',
+    'tsfresh',
+    'scikit_learn',
+    'psutil'
 ]
 
-EXTRAS_REQUIRE = {'tests': ['pytest'], 'docs': []}
+EXTRAS_REQUIRE = {'tests': ['pytest'], 'data': ['fastparquet']}
 
 setuptools.setup(
     name=DISTNAME,
@@ -61,7 +61,7 @@ setuptools.setup(
     long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
     url=URL,
     download_url=DOWNLOAD_URL,
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['data', 'examples', 'experiments']),
     classifiers=[
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',
