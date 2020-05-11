@@ -69,7 +69,7 @@ def beautify_mpl(fontsize=16, figsize=(10, 8), dark_mode=False):
     mpl.rcParams.update(params)
     if dark_mode:
         plt.style.use('dark_background')
-    plt.style.use('seaborn-pastel')
+    plt.style.use('seaborn-deep')
     sns.set_color_codes()
 
 
@@ -80,9 +80,11 @@ def prettify(figsize=(8, 6)):
     mpl.rcParams['figure.figsize'] = figsize
 
 
-def boxplot(data, x, y, figsize=(10, 8), xticklabels=None, savefile=None):
+def boxplot(data, x, y, figsize=(10, 8), xticklabels=None, savefile=None, box_quantiles=None):
     fig, ax = plt.subplots(1)
-    sns.boxplot(x=x, y=y, data=data, notch=True, linewidth=2, width=0.4)
+    whis = (1, 99) if box_quantiles is not None else 1.5
+    sns.boxplot(x=x, y=y, data=data, notch=True,
+                linewidth=2, width=0.4, whis=whis)
     prettify(figsize)
 
     for i, artist in enumerate(ax.artists):

@@ -44,6 +44,11 @@ def pasteur_calcium_dataset(datapath):
         traces_df = []
         for file in glob(animal_directory + '*xls'):
             traces_df.append(pd.read_csv(file, delimiter='\t', index_col=0))
+        for file in glob(animal_directory + '*csv'):
+            traces = pd.read_csv(file, delimiter='\t', index_col=0)
+            if traces.shape[1] == 0:
+                traces = pd.read_csv(file, delimiter=',', index_col=0)
+            traces_df.append(traces)
 
         calcium_traces['series'].append(traces_df)
     return calcium_traces
