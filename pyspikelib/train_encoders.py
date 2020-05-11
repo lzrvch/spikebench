@@ -11,7 +11,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+from tqdm import tqdm
 import multiprocessing as mp
+from pathos.multiprocessing import ProcessingPool as Pool
 from functools import partial
 
 import elephant.statistics as spkstat
@@ -28,8 +30,8 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
     """Base class for spike train transforms"""
 
     def __init__(self, n_jobs=None):
-        self.n_jobs = mp.cpu_count() if n_jobs is None else n_jobs
         super().__init__()
+        self.n_jobs = mp.cpu_count() if n_jobs is None else n_jobs
 
     @staticmethod
     def string_to_float_series(string_series, delimiter=None):
@@ -41,7 +43,7 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
     def single_train_transform(self, tensor):
         raise NotImplementedError
 
-    def transform(self, X, y=None, format='numpy', axis=-1, delimiter=None):
+    def transform(self, X, y=None, format='pndz', axis=-1, delimiter=None):
         if format == 'numpy':
             X = self.numpy_transform(X, axis)
             return X
@@ -54,9 +56,26 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
                 ['{:.2f}'.format(value) for value in transfomed_train]
             )
 
-        pool = mp.Pool(self.n_jobs)
-        X.series.values = pool.map(transform_spike_train, X.series.values)
+        pool = Pool(self.n_jobs)
+        X.series = pool.map(transform_spike_train, X.series.values)
         return X
+
+
+class DFSpikeTrainTransform(SpikeTrainTransform):
+
+    def __init__(self, func, n_jobs=None, copy=False, **kwargs):
+        super().__init__()
+        self.func = func
+        self.copy = copy
+        self.kwargs = kwargs
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            self.kwargs[key] = value
+
+    def single_train_transform(self, X):
+        X_ = X if not self.copy else X.copy()
+        return self.func(X_, **self.kwargs)
 
 
 class ISIShuffleTransform(SpikeTrainTransform):

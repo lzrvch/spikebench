@@ -14,15 +14,17 @@
 import numpy as np
 import pandas as pd
 import scipy.signal as signal
+from pathos.multiprocessing import ProcessingPool as Pool
 
 import pyspikelib.oopsi as oopsi
 from pyspikelib import SpikeTrainTransform
 
 
+
 class SmoothingTransform(SpikeTrainTransform):
     """Smooth a set of time series"""
 
-    def __init__(self, window_len=10, window='hanning', do_filtering=False, fps=None):
+    def __init__(self, window_len=7, window='hanning', do_filtering=False, fps=None):
         super().__init__()
         self.window_len = window_len
         self.window = window
@@ -75,7 +77,7 @@ class SmoothingTransform(SpikeTrainTransform):
 class OOPSITransform(SpikeTrainTransform):
     """Apply OOPSI algorithm to traces"""
 
-    def __init__(self, dt_factor=1e-1, max_iters=500, timespan=None):
+    def __init__(self, dt_factor=1e-1, max_iters=100, timespan=None):
         super().__init__()
         self.dt_factor = dt_factor
         self.max_iters = max_iters
@@ -83,8 +85,11 @@ class OOPSITransform(SpikeTrainTransform):
 
     @staticmethod
     def apply_oopsi(x, fps, dt_factor, max_iters):
-        d, trace = oopsi.fast(x, dt=dt_factor / fps, iter_max=max_iters)
-        return trace
+        if fps is not None:
+            events, trace = oopsi.fast(x, dt=dt_factor/fps, iter_max=max_iters)
+        else:
+            raise RuntimeError('Invalid fps value!')
+        return events, trace
 
     def set_params(self, timespan):
         self.timespan = timespan
@@ -93,9 +98,30 @@ class OOPSITransform(SpikeTrainTransform):
         self.fps = tensor.shape[1] / self.timespan
         return np.apply_along_axis(self.single_train_transform, axis, tensor)
 
-    def single_train_transform(self, tensor):
+    def single_train_transform(self, tensor, timespan=None):
+        self.fps = tensor.shape[0] / timespan
         return self.apply_oopsi(tensor, self.fps,
                                 self.dt_factor, self.max_iters)
+
+    def transform(self, X, y=None, axis=-1, delimiter=None):
+        join_delimiter = ' ' if delimiter is None else delimiter
+
+        def transform_spike_train(spike_train):
+            spike_train, timespan = spike_train
+            train = self.string_to_float_series(spike_train, delimiter=delimiter)
+            events, transfomed_train = self.single_train_transform(train, timespan=timespan)
+            transformed_train_string = join_delimiter.join(
+                ['{:.5f}'.format(value) for value in transfomed_train]
+            )
+            events_string = join_delimiter.join(
+                ['{:.5f}'.format(value) for value in events]
+            )
+            return transformed_train_string, events_string
+
+        pool = Pool(self.n_jobs)
+        X.series = pool.map(transform_spike_train, [(series, timespan) for series, timespan
+                                                    in zip(X.series.values, X.timespan.values)])
+        return X
 
 
 class MedianFilterDetrender(SpikeTrainTransform):
@@ -110,7 +136,8 @@ class MedianFilterDetrender(SpikeTrainTransform):
         If the median exceeds this threshold, it will be capped at this level.
     """
 
-    def __init__(self, window=101, peak_std_threshold=4.0):
+    def __init__(self, window=2001, peak_std_threshold=4.0, n_jobs=None):
+        super().__init__(n_jobs=n_jobs)
         self.window = window
         self.peak_std_threshold = peak_std_threshold
         self.mad_constant = 1.4826
@@ -121,94 +148,37 @@ class MedianFilterDetrender(SpikeTrainTransform):
         MAD = np.median(np.abs(x - np.median(x)))
         return self.mad_constant * MAD
 
-    def core_transform(self, X):
-        self.fit_params = {}
-        X_new = X.copy()
-        for col in X.columns:
-            tmp_data = X[col].values.astype(np.double)
-            mf = signal.medfilt(tmp_data, self.window)
-            mf = np.minimum(mf, self.peak_std_threshold * self._robust_std(mf))
-            self.fit_params[col] = dict(mf=mf)
-            X_new[col] = tmp_data - mf
-
-        return X_new
+    def detrend_trace(self, trace):
+        trend_component = signal.medfilt(trace, self.window)
+        trend_component = np.minimum(trend_component, self.peak_std_threshold * self._robust_std(trend_component))
+        return trace - trend_component
 
     def numpy_transform(self, tensor, axis=1):
-        transformed_df = self.core_transform(pd.DataFrame(tensor))
-        return transformed_df.values
+        return np.apply_along_axis(self.single_train_transform, axis, tensor)
 
     def single_train_transform(self, tensor):
-        transformed_df = self.core_transform(pd.DataFrame(tensor))
-        return transformed_df.values
+        return self.detrend_trace(tensor)
 
 
 class Normalize(SpikeTrainTransform):
-    """
-    Modified from: https://github.com/AllenInstitute/neuroglia/
-    Normalize the trace by a rolling baseline (that is, calculate dF/F)
-    Parameters
-    ---------
-    window: float, optional (default: 3.0)
-        time in minutes
-    percentile: int, optional (default: 8)
-        percentile to subtract off
-    """
 
-    def __init__(self, window=3.0, percentile=8):
+    def __init__(self, window=1000, percentile=8):
+        super().__init__()
         self.window = window
         self.percentile = percentile
 
-    def transform(self, X):
-        """Normalize each column of X
-        Parameters
-        ----------
-        X : DataFrame in `traces` structure [n_samples, n_traces]
-        Returns
-        -------
-        Xt : DataFrame in `traces` structure [n_samples, n_traces]
-            The normalized calcium traces.
-        """
-        df_norm = pd.DataFrame()
-        for col in X.columns:
-            df_norm[col] = self.normalize_trace(
-                trace=X[col], window=self.window, percentile=self.percentile,
-            )
-
-        return df_norm
-
     @staticmethod
-    def normalize_trace(trace, window=3, percentile=8):
-        """ normalized the trace by substracting off a rolling baseline
-        Parameters
-        ---------
-        trace: pd.Series with time as index
-        window: float
-            time in minutes
-        percentile: int
-            percentile to subtract off
-        """
-
-        sampling_rate = np.diff(trace.index).mean()
-        window = int(np.ceil(window / sampling_rate))
-
-        # suggest 8% in literature, but this doesnt work well for our data, use
-        # median
-        def p(x):
-            return np.percentile(x, percentile)
-
-        baseline = trace.rolling(window=window, center=True).apply(func=p)
+    def normalize_trace(trace, window=1000, percentile=8):
+        lower_percentile = lambda x: np.percentile(x, percentile)
+        baseline = pd.Series(trace).rolling(window=window, center=True).apply(func=lower_percentile)
         baseline = baseline.fillna(method='bfill')
         baseline = baseline.fillna(method='ffill')
-
         dF = trace - baseline
         dFF = dF / baseline
-
         return dFF
 
-    def numpy_transform(self, tensor, axis=1):
-        transformed_df = self.core_transform(pd.DataFrame(tensor))
-        return transformed_df.values
+    def numpy_transform(self, tensor, axis=0):
+        return np.apply_along_axis(self.single_train_transform, axis, tensor)
 
     def single_train_transform(self, tensor):
-        transformed_df = self.core_transform(pd.DataFrame(tensor))
-        return transformed_df.values
+        return self.normalize_trace(tensor, self.window, self.percentile)
