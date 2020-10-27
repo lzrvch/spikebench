@@ -1,7 +1,5 @@
 ## pyspikelib: A set of tools for neuronal spiking data mining
 
-By [Ivan Lazarevich](https://lazarevi.ch)
-
 **pyspikelib** allows building machine learning models on time series representations of neuronal spike trains. For more details, please refer to our [arXiv paper](https://arxiv.org/abs/1810.03855).
 
 <p align="center">
