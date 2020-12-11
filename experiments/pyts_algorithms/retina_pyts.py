@@ -12,7 +12,7 @@ from pyspikelib.fit_predict import tsfresh_fit_predict
 from pyspikelib import TrainNormalizeTransform
 from pyspikelib.utils import simple_undersampling
 
-from pyts.classification import BOSSVS
+from pyts.classification import BOSSVS, SAXVSM, LearningShapelets
 
 warnings.filterwarnings('ignore')
 # %%
@@ -74,3 +74,22 @@ classifier.fit(X_train, y_train)
 # %%
 accuracy_score(y_test, classifier.predict(X_test))
 # %%
+classifier = SAXVSM(window_size=20, sublinear_tf=False, use_idf=False)
+classifier.fit(X_train, y_train)
+# %%
+accuracy_score(y_test, classifier.predict(X_test))
+# %%
+classifier = LearningShapelets(random_state=0, tol=0.1)
+classifier.fit(X_train, y_train)
+# %%
+accuracy_score(y_test, classifier.predict(X_test))
+# %%
+from pyts.transformation import ROCKET
+
+rocket = ROCKET(n_kernels=500, random_state=42)
+X_train = rocket.fit_transform(X_train)
+X_test = rocket.fit_transform(X_test)
+# %%
+forest = RandomForestClassifier(n_estimators=100, n_jobs=-1)
+forest.fit(X_train, y_train)
+accuracy_score(y_test, forest.predict(X_test))

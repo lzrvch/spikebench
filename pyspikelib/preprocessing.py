@@ -1,16 +1,3 @@
-# PySpikeLib: A set of tools for neuronal spiking data mining
-# Copyright (c) 2020 Ivan Lazarevich.
-#
-# This program is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <http://www.gnu.org/licenses/>.
-
 import numpy as np
 import pandas as pd
 import scipy.signal as signal
@@ -37,7 +24,8 @@ class SmoothingTransform(SpikeTrainTransform):
             raise ValueError('smooth() method only accepts 1 dimensional arrays')
 
         if x.size < window_len:
-            raise ValueError('Input vector needs to be bigger than window size.')
+            return x
+            # raise ValueError('Input vector needs to be bigger than window size.')
 
         if window_len < 3:
             return x

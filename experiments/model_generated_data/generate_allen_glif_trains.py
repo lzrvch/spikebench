@@ -46,8 +46,8 @@ if __name__ == '__main__':
         'cell_type_tag': 'Vip',
         'stimulus_amplitude': 1e-8,
         'duration': 5e6,
-        'noise_exponent': 0,
-        'dump_file': './experiments/model_generated_data/data/vip_glif_spike_trains.csv'
+        'noise_exponent': 1,
+        'dump_file': './experiments/model_generated_data/data/vip_glif_spike_trains_exp1.csv'
     })
 
     ctc = CellTypesCache()

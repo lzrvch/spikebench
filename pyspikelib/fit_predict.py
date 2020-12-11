@@ -111,5 +111,10 @@ def eval_classifier_scores(
     )
     model.fit(X_train, y_train)
     acc_score = accuracy_score(y_test, model.predict(X_test))
+    acc_score_trainset = accuracy_score(y_train, model.predict(X_train))
     auc_roc_score = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
-    return {'accuracy': acc_score, 'auc-roc': auc_roc_score}
+    auc_roc_score_trainset = roc_auc_score(y_train, model.predict_proba(X_train)[:, 1])
+    return {'accuracy': acc_score,
+            'auc-roc': auc_roc_score,
+            'accuracy_train': acc_score_trainset,
+            'auc-roc_train': auc_roc_score_trainset}

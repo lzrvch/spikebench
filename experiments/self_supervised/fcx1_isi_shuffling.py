@@ -14,9 +14,11 @@ from pyspikelib.train_encoders import ISIShuffleTransform
 
 warnings.filterwarnings('ignore')
 # %%
+np.random.seed(0)
+
 run_config = {
-    'window': 200,
-    'step': 200,
+    'window': 50,
+    'step': 50,
     'scale': True,
     'remove_low_variance': True,
     'trials': 10,
@@ -27,7 +29,7 @@ run_config = {
 run_config = Dict(run_config)
 # %%
 dataset = Path('./data/')
-wake_spikes = fcx1_dataset(dataset / 'wake.parq')
+wake_spikes = fcx1_dataset(dataset / 'sleep.parq')
 shuffler = ISIShuffleTransform()
 wake_spikes_shuffled = shuffler.transform(
     deepcopy(wake_spikes), format='pandas', delimiter=run_config.delimiter
@@ -45,5 +47,5 @@ for train_index, test_index in group_split.split(X, y, groups):
 X_train = pd.DataFrame({'series': X_train, 'groups': groups[train_index]})
 X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 # %%
-forest = RandomForestClassifier(n_estimators=200, random_state=41, n_jobs=-1)
+forest = RandomForestClassifier(n_estimators=200, random_state=0, n_jobs=-1)
 tsfresh_fit_predict(forest, X_train, X_test, y_train, y_test, run_config)

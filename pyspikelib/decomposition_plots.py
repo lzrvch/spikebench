@@ -35,13 +35,16 @@ def feature_scatter_plot(
 
     indices = np.random.choice(X.shape[0], samples)
 
+    cmap = ('#fb290f', '#063373')
+    # cmap = (sns.color_palette('Paired')[5], sns.color_palette('Paired')[1])
+
     colors = pd.Series(y[indices]).map(
-        {0: sns.color_palette('Paired')[5], 1: sns.color_palette('Paired')[1]}
+        {0: cmap[0], 1: cmap[1]}
     )
 
     custom_lines = [
-        Line2D([0], [0], color=sns.color_palette('Paired')[5], lw=1.5),
-        Line2D([0], [0], color=sns.color_palette('Paired')[1], lw=1.5),
+        Line2D([0], [0], color=cmap[0], lw=1.5),
+        Line2D([0], [0], color=cmap[1], lw=1.5),
     ]
 
     beautify_mpl()
@@ -81,13 +84,16 @@ def decompose_scatter_plot(
 
     indices = np.random.choice(X.shape[0], samples)
 
+    cmap = ('#fb290f', '#063373')
+    # cmap = (sns.color_palette('Paired')[5], sns.color_palette('Paired')[1])
+
     colors = pd.Series(y[indices]).map(
-        {0: sns.color_palette('Paired')[5], 1: sns.color_palette('Paired')[1]}
+        {0: cmap[0], 1: cmap[1]}
     )
 
     custom_lines = [
-        Line2D([0], [0], color=sns.color_palette('Paired')[5], lw=1.5),
-        Line2D([0], [0], color=sns.color_palette('Paired')[1], lw=1.5),
+        Line2D([0], [0], color=cmap[0], lw=1.5),
+        Line2D([0], [0], color=cmap[1], lw=1.5),
     ]
 
     beautify_mpl()
