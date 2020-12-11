@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy.io import loadmat
 
-from .utils import rtf_to_text
+from .rtf_reader import rtf_to_text
 
 
 def pasteur_dataset(datapath):
