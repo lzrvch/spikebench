@@ -67,10 +67,11 @@ def prettify(figsize=(8, 6)):
     mpl.rcParams['figure.figsize'] = figsize
 
 
-def boxplot(data, x, y, figsize=(10, 8), xticklabels=None, savefile=None, box_quantiles=None):
+def boxplot(data, x, y, figsize=(10, 8), xticklabels=None,
+            savefile=None, box_quantiles=None, notch=False):
     fig, ax = plt.subplots(1)
     whis = (1, 99) if box_quantiles is not None else 1.5
-    sns.boxplot(x=x, y=y, data=data, notch=True,
+    sns.boxplot(x=x, y=y, data=data, notch=notch,
                 linewidth=2, width=0.4, whis=whis)
     prettify(figsize)
 

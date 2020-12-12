@@ -36,6 +36,7 @@ LONG_DESCRIPTION_CONTENT_TYPE = 'text/markdown'
 
 INSTALL_REQUIRES = [
     'addict',
+    'pathos',
     'quantities',
     'neo',
     'matplotlib',
