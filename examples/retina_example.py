@@ -76,10 +76,13 @@ def main(argv):
     X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
     forest = RandomForestClassifier(
-        n_estimators=config.n_trees, random_state=config.seed, n_jobs=-1
+        n_estimators=config.n_trees,
+        random_state=config.seed,
+        max_depth=10,
+        n_jobs=-1
     )
-    scores = tsfresh_fit_predict(forest, X_train, X_test, y_train, y_test, config)
-    return scores
+    results = tsfresh_fit_predict(forest, X_train, X_test, y_train, y_test, config)
+    logging.info('Classification metrics:\n' + str(results.head(10)))
 
 
 if __name__ == '__main__':

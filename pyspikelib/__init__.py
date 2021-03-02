@@ -20,6 +20,7 @@ from .train_transformers import (
 )
 from .train_encoders import (
     SpikeTrainTransform,
+    DFSpikeTrainTransform,
     ISIShuffleTransform,
     TrainBinarizationTransform,
     SpikeTimesToISITransform,

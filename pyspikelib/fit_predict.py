@@ -1,6 +1,8 @@
 import logging
+import pickle
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import roc_auc_score, accuracy_score
 
 from pyspikelib import TrainNormalizeTransform
@@ -9,41 +11,39 @@ from pyspikelib import TsfreshVectorizeTransform
 from pyspikelib.utils import simple_undersampling
 
 
-def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test, config):
-    classifier_scores = {'full_features': {}, 'simple_baseline': {}}
-    logging.info('Started time series vectorization')
-    X_train, y_train = tsfresh_vectorize(X_train, y_train, config)
-    X_test, y_test = tsfresh_vectorize(X_test, y_test, config)
-    preprocessing = TsfreshFeaturePreprocessorPipeline(
-        do_scaling=config.scale, remove_low_variance=config.remove_low_variance
-    ).construct_pipeline()
-    preprocessing.fit(X_train)
-    X_train = preprocessing.transform(X_train)
-    X_test = preprocessing.transform(X_test)
-    logging.info('Dataset size: train {}, test {}'.format(X_train.shape, X_test.shape))
-    logging.info(
-        'Average target: train {}, test {}'.format(y_train.mean(), y_test.mean())
-    )
-    logging.info(
-        'Training classifiers on data subsamples for {} trials'.format(config.trials)
-    )
-    for _ in range(config.trials):
-        scores = eval_classifier_scores(
-            model,
-            X_train,
-            X_test,
-            y_train,
-            y_test,
-            train_subsample_factor=config.train_subsample_factor,
-            test_subsample_factor=config.test_subsample_factor,
-        )
-        for key in scores:
-            if key not in classifier_scores['full_features']:
-                classifier_scores['full_features'][key] = [scores[key]]
-            else:
-                classifier_scores['full_features'][key].append(scores[key])
+def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test,
+                        config, load_dataset_from=None, dump_dataset_to=None):
 
-    feature_names = [
+    if load_dataset_from is not None:
+        with open(load_dataset_from, 'wb') as f:
+            X_train, y_train, X_test, y_test = pickle.load(f)
+    else:
+        logging.info('Started time series vectorization and preprocessing')
+        X_train, y_train = tsfresh_vectorize(X_train, y_train, config)
+        X_test, y_test = tsfresh_vectorize(X_test, y_test, config)
+        preprocessing = TsfreshFeaturePreprocessorPipeline(
+            do_scaling=config.scale, remove_low_variance=config.remove_low_variance
+        ).construct_pipeline()
+        preprocessing.fit(X_train)
+        X_train = preprocessing.transform(X_train)
+        X_test = preprocessing.transform(X_test)
+
+    logging.info(
+        'Dataset shape after preprocessing: train {}, test {}'.format(X_train.shape, X_test.shape)
+    )
+    logging.info(
+        'Average target value: train {}, test {}'.format(y_train.mean(), y_test.mean())
+    )
+
+    if dump_dataset_to is not None:
+        with open(dump_dataset_to, 'wb') as f:
+            pickle.dump((X_train, y_train, X_test, y_test), f)
+
+    result_table_columns = ['trial', 'feature_set',
+                            'accuracy_test', 'auc_roc_test',
+                            'accuracy_train', 'auc_roc_train']
+    results = {key: [] for key in result_table_columns}
+    baseline_feature_names = [
         'abs_energy',
         'mean',
         'median',
@@ -51,36 +51,47 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test, config):
         'maximum',
         'standard_deviation',
     ]
-    simple_baseline_features = ['value__' + name for name in feature_names]
-    X_train = X_train.loc[:, simple_baseline_features]
-    X_test = X_test.loc[:, simple_baseline_features]
-    for _ in range(config.trials):
-        scores = eval_classifier_scores(
-            model,
-            X_train,
-            X_test,
-            y_train,
-            y_test,
-            train_subsample_factor=config.train_subsample_factor,
-            test_subsample_factor=config.test_subsample_factor,
+    baseline_feature_names = ['value__' + name for name
+                              in baseline_feature_names]
+    metrics_to_collect = {'accuracy': accuracy_score, 'auc_roc': roc_auc_score}
+
+    logging.info(
+        'Training classifiers on dataset subsamples for {} trials'.format(config.trials)
+    )
+    for trial_idx in range(config.trials):
+        X_train_sample_balanced, y_train_sample_balanced = simple_undersampling(
+            X_train, y_train, subsample_size=config.train_subsample_factor
         )
-        for key in scores:
-            if key not in classifier_scores['simple_baseline']:
-                classifier_scores['simple_baseline'][key] = [scores[key]]
-            else:
-                classifier_scores['simple_baseline'][key].append(scores[key])
-    for metric in classifier_scores['simple_baseline']:
-        logging.info(
-            'Full feature set mean classification score ({}) {}'.format(
-                metric, np.mean(classifier_scores['full_features'][metric])
-            )
+        X_test_sample_balanced, y_test_sample_balanced = simple_undersampling(
+            X_test, y_test, subsample_size=config.test_subsample_factor
         )
-        logging.info(
-            'Simple feature set mean classification score ({}) {}'.format(
-                metric, np.mean(classifier_scores['simple_baseline'][metric])
-            )
-        )
-    return classifier_scores
+
+        model.fit(X_train_sample_balanced, y_train_sample_balanced)
+        for (X, y), dataset_label in [((X_test_sample_balanced, y_test_sample_balanced), 'test'),
+                                      ((X_train_sample_balanced, y_train_sample_balanced), 'train')]:
+            for metric_name, metric_fn in metrics_to_collect.items():
+                model_predictions = model.predict(X) \
+                    if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
+                results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
+        results['feature_set'].append(config.feature_set)
+        results['trial'].append(trial_idx)
+
+        X_train_sample_balanced = X_train_sample_balanced.loc[:, baseline_feature_names]
+        X_test_sample_balanced = X_test_sample_balanced.loc[:, baseline_feature_names]
+
+        model.fit(X_train_sample_balanced, y_train_sample_balanced)
+
+        for (X, y), dataset_label in [((X_test_sample_balanced, y_test_sample_balanced), 'test'),
+                                      ((X_train_sample_balanced, y_train_sample_balanced), 'train')]:
+            for metric_name, metric_fn in metrics_to_collect.items():
+                model_predictions = model.predict(X) \
+                    if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
+                results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
+
+        results['feature_set'].append('simple_baseline')
+        results['trial'].append(trial_idx)
+
+    return pd.DataFrame(results)
 
 
 def tsfresh_vectorize(X, y, config):
@@ -92,29 +103,3 @@ def tsfresh_vectorize(X, y, config):
     X, y = normalizer.transform(X, y, delimiter=config.delimiter)
     X = vectorizer.transform(X)
     return X, y
-
-
-def eval_classifier_scores(
-    model,
-    X_train,
-    X_test,
-    y_train,
-    y_test,
-    train_subsample_factor=0.7,
-    test_subsample_factor=0.7,
-):
-    X_train, y_train = simple_undersampling(
-        X_train, y_train, subsample_size=train_subsample_factor
-    )
-    X_test, y_test = simple_undersampling(
-        X_test, y_test, subsample_size=test_subsample_factor
-    )
-    model.fit(X_train, y_train)
-    acc_score = accuracy_score(y_test, model.predict(X_test))
-    acc_score_trainset = accuracy_score(y_train, model.predict(X_train))
-    auc_roc_score = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
-    auc_roc_score_trainset = roc_auc_score(y_train, model.predict_proba(X_train)[:, 1])
-    return {'accuracy': acc_score,
-            'auc-roc': auc_roc_score,
-            'accuracy_train': acc_score_trainset,
-            'auc-roc_train': auc_roc_score_trainset}

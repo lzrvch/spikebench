@@ -20,7 +20,7 @@ def get_argument_parser():
     default_config = {
         'seed': 0,
         'window': 200,
-        'step': 200,
+        'step': 100,
         'trials': 10,
         'scale': True,
         'remove_low_variance': True,
@@ -61,10 +61,13 @@ def main(argv):
     X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
     forest = RandomForestClassifier(
-        n_estimators=config.n_trees, random_state=config.seed, n_jobs=-1
+        n_estimators=config.n_trees,
+        random_state=config.seed,
+        max_depth=10,
+        n_jobs=-1
     )
-    scores = tsfresh_fit_predict(forest, X_train, X_test, y_train, y_test, config)
-    return scores
+    results = tsfresh_fit_predict(forest, X_train, X_test, y_train, y_test, config)
+    logging.info('Classification metrics:\n' + str(results.head(10)))
 
 
 if __name__ == '__main__':
