@@ -48,7 +48,7 @@ def main(argv):
     wake_spikes = fcx1_dataset(dataset_path / 'wake.parq')
     sleep_spikes = fcx1_dataset(dataset_path / 'sleep.parq')
 
-    group_split = GroupShuffleSplit(n_splits=1, test_size=0.7)
+    group_split = GroupShuffleSplit(n_splits=1, test_size=0.3)
     X = np.hstack([wake_spikes.series.values, sleep_spikes.series.values])
     y = np.hstack([np.ones(wake_spikes.shape[0]), np.zeros(sleep_spikes.shape[0])])
     groups = np.hstack([wake_spikes.groups.values, sleep_spikes.groups.values])

@@ -48,7 +48,7 @@ def main(argv):
     np.random.seed(config.seed)
     retinal_spike_data = retina_dataset(config.dataset)
 
-    group_split = GroupShuffleSplit(n_splits=1, test_size=0.5)
+    group_split = GroupShuffleSplit(n_splits=1, test_size=0.3)
     X = np.hstack(
         [
             retinal_spike_data[config.fstate].series.values,

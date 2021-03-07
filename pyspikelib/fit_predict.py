@@ -15,7 +15,7 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test,
                         config, load_dataset_from=None, dump_dataset_to=None):
 
     if load_dataset_from is not None:
-        with open(load_dataset_from, 'wb') as f:
+        with open(load_dataset_from, 'rb') as f:
             X_train, y_train, X_test, y_test = pickle.load(f)
     else:
         logging.info('Started time series vectorization and preprocessing')
@@ -60,10 +60,10 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test,
     )
     for trial_idx in range(config.trials):
         X_train_sample_balanced, y_train_sample_balanced = simple_undersampling(
-            X_train, y_train, subsample_size=config.train_subsample_factor
+            X_train, y_train, subsample_size=config.train_subsample_factor,
         )
         X_test_sample_balanced, y_test_sample_balanced = simple_undersampling(
-            X_test, y_test, subsample_size=config.test_subsample_factor
+            X_test, y_test, subsample_size=config.test_subsample_factor,
         )
 
         model.fit(X_train_sample_balanced, y_train_sample_balanced)
