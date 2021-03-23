@@ -37,6 +37,8 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
         join_delimiter = ' ' if delimiter is None else delimiter
 
         def transform_spike_train(spike_train):
+            if not isinstance(spike_train, str):
+                return None
             train = self.string_to_float_series(spike_train, delimiter=delimiter)
             transfomed_train = self.single_train_transform(train)
             return join_delimiter.join(
@@ -115,7 +117,7 @@ class TrainBinarizationTransform(SpikeTrainTransform):
 
             return np.apply_along_axis(variable_length_transform, axis, tensor)
 
-    def single_train_transform(self, series, axis):
+    def single_train_transform(self, series, axis=0):
         spike_times = np.cumsum(series, axis)
         start_time = spike_times.min() if self.start_time is None else self.start_time
         duration = (
