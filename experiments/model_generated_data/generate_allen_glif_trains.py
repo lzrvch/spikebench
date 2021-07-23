@@ -44,10 +44,10 @@ def model_ids_for_cell_type(cells_df, cell_type_tag):
 if __name__ == '__main__':
     config = Dict({
         'cell_type_tag': 'Vip',
-        'stimulus_amplitude': 1e-8,
-        'duration': 5e6,
-        'noise_exponent': 1,
-        'dump_file': './experiments/model_generated_data/data/vip_glif_spike_trains_exp1.csv'
+        'stimulus_amplitude': 0.2e-8,
+        'duration': 1e6,
+        'noise_exponent': 3,
+        'dump_file': './experiments/model_generated_data/data/vip_glif_spike_trains_exp3_02e-8amp.csv'
     })
 
     ctc = CellTypesCache()

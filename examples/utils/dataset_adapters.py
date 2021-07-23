@@ -43,7 +43,10 @@ def pasteur_calcium_dataset(datapath):
         calcium_traces['timespan'].append(timespan)
         traces_df = []
         for file in glob(animal_directory + '*xls'):
-            traces_df.append(pd.read_excel(file, delimiter='\t', index_col=0, encoding = 'utf-8'))
+            try:
+                traces_df.append(pd.read_excel(file, delimiter='\t', index_col=0, encoding = 'utf-8'))
+            except:
+                traces_df.append(pd.read_csv(file, delimiter='\t', index_col=0, encoding = 'utf-8'))
         for file in glob(animal_directory + '*csv'):
             traces = pd.read_csv(file, delimiter='\t', index_col=0)
             if traces.shape[1] == 0:
