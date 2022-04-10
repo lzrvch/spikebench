@@ -3,9 +3,7 @@ import sys
 import warnings
 
 import numpy as np
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GroupShuffleSplit
 
 from pyspikelib.config import get_common_argument_parser, Config
 from pyspikelib import load_retina

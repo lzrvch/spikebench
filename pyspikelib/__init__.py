@@ -19,4 +19,4 @@ from .encoders import (
 
 from .helpers import distribution_features_tsfresh_dict
 
-from .load_datasets import load_fcx1, load_retina
+from .load_datasets import load_fcx1, load_retina, load_allen
