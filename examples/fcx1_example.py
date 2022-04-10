@@ -37,7 +37,7 @@ def main(argv):
 
     np.random.seed(config.seed)
 
-    X_train, X_test, y_train, y_test = load_fcx1()
+    X_train, X_test, y_train, y_test, gr_train, gr_test = load_fcx1(random_seed=config.seed)
 
     model = RandomForestClassifier(
         n_estimators=config.n_trees,
