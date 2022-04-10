@@ -10,7 +10,7 @@ from sklearn.model_selection import GroupShuffleSplit
 
 from examples.utils.config import get_common_argument_parser, Config
 from examples.utils.dataset_adapters import allen_dataset
-from pyspikelib.fit_predict import tsfresh_fit_predict
+from pyspikelib.helpers import tsfresh_fit_predict
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)

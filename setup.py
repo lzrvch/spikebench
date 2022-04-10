@@ -16,21 +16,13 @@ def read(*parts):
         return fp.read()
 
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError('Unable to find version string.')
-
-
 DISTNAME = 'pyspikelib'
 DESCRIPTION = 'pyspikelib: A set of tools for neuronal spiking data mining'
 MAINTAINER = 'Ivan Lazarevich'
 MAINTAINER_EMAIL = 'ivan@lazarevi.ch'
 URL = 'https://github.com/vanyalzr/pyspikelib'
 DOWNLOAD_URL = 'https://github.com/vanyalzr/pyspikelib'
-VERSION = find_version(os.path.join(here, 'pyspikelib/version.py'))
+VERSION = '1.0'
 LONG_DESCRIPTION_CONTENT_TYPE = 'text/markdown'
 
 
@@ -47,7 +39,9 @@ INSTALL_REQUIRES = [
     'elephant',
     'tsfresh',
     'scikit_learn',
-    'psutil'
+    'psutil',
+    'gdown',
+    'pyarrow',
 ]
 
 EXTRAS_REQUIRE = {'tests': ['pytest'], 'data': ['fastparquet']}

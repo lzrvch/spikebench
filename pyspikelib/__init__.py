@@ -1,11 +1,13 @@
-from .decomposition_plots import feature_scatter_plot, decompose_scatter_plot
-from .mpladeq import beautify_mpl, prettify
-from .train_transformers import (
+from .plotting import beautify_mpl, prettify, \
+    feature_scatter_plot, decompose_scatter_plot
+
+from .transforms import (
     TrainNormalizeTransform,
     TsfreshFeaturePreprocessorPipeline,
     TsfreshVectorizeTransform,
 )
-from .train_encoders import (
+
+from .encoders import (
     SpikeTrainTransform,
     DFSpikeTrainTransform,
     ISIShuffleTransform,
@@ -14,4 +16,7 @@ from .train_encoders import (
     ISIToSpikeTimesTransform,
     SpikeTrainToFiringRateTransform,
 )
-from .utils import distribution_features_tsfresh_dict
+
+from .helpers import distribution_features_tsfresh_dict
+
+from .load_datasets import load_fcx1, load_retina

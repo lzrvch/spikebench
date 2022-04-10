@@ -1,10 +1,11 @@
-from tqdm import tqdm
 import multiprocessing as mp
-from pathos.multiprocessing import ProcessingPool as Pool
 from functools import partial
 
-import elephant.statistics as spkstat
 import numpy as np
+import elephant.statistics as spkstat
+
+from tqdm import tqdm
+from pathos.multiprocessing import ProcessingPool as Pool
 from elephant.kernels import GaussianKernel
 from neo.core import SpikeTrain
 from quantities import ms
@@ -221,6 +222,3 @@ class SpikeTrainToFiringRateTransform(SpikeTrainTransform):
             self.train_duration,
             self.sampling_period,
         )
-
-
-# ToDo: jitter transform

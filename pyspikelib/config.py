@@ -95,8 +95,6 @@ class Config(Dict):
 
 def get_common_argument_parser(default_config):
     parser = CustomArgumentParser()
-    parser.add_argument('--window', default=default_config['window'], type=int)
-    parser.add_argument('--step', default=default_config['step'], type=int)
     parser.add_argument('--trials', default=default_config['trials'], type=int)
     parser.add_argument('--seed', default=default_config['seed'], type=int)
     parser.add_argument(
@@ -112,8 +110,6 @@ def get_common_argument_parser(default_config):
     parser.add_argument(
         '--feature-set', default=default_config['feature_set'], type=str
     )
-    parser.add_argument('--dataset', default=default_config['dataset'], type=str)
-    parser.add_argument('--delimiter', default=default_config['delimiter'], type=str)
     parser.add_argument(
         '--remove_low_variance',
         default=default_config['remove_low_variance'],

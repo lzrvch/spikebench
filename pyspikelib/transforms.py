@@ -3,15 +3,17 @@ from functools import partial
 import psutil
 import numpy as np
 import pandas as pd
-import tsfresh.utilities.dataframe_functions as tsfresh_utils
+
 from sklearn.base import TransformerMixin
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
+
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
+import tsfresh.utilities.dataframe_functions as tsfresh_utils
 
-import pyspikelib.utils as utils
-from pyspikelib.base_transformers import (
+import pyspikelib.helpers as helpers
+from pyspikelib.base_transforms import (
     NoFitMixin,
     DFTransform,
     DFStandardScaler,
@@ -44,6 +46,7 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
     def transform(self, X, y=None, delimiter=None):
         normalized_trains = np.zeros(self.window)
         target = np.array([])
+        groups = np.array([])
         for train_index, spike_train in enumerate(X.series.values):
             spike_train = self.string_to_float_series(spike_train, delimiter=delimiter)
             split_chunks = self.rolling_window(
@@ -52,6 +55,7 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
             if split_chunks is not None:
                 normalized_trains = np.vstack([normalized_trains, split_chunks])
                 target = np.append(target, [y[train_index]] * split_chunks.shape[0])
+                groups = np.append(groups, [X.groups[train_index]] * split_chunks.shape[0])
 
         normalized_trains = normalized_trains[1:, :]
         if self.n_samples is not None:
@@ -59,7 +63,8 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
             for train_index, test_index in splitter.split(normalized_trains, target):
                 normalized_trains = normalized_trains[train_index, :]
                 target = target[train_index]
-        return np.vstack(normalized_trains), target
+                groups = groups[train_index]
+        return np.vstack(normalized_trains), target, groups
 
 
 class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
@@ -93,7 +98,7 @@ class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
                 'standard_deviation',
             ]
         }
-        distribution_features_dict = utils.distribution_features_tsfresh_dict()
+        distribution_features_dict = helpers.distribution_features_tsfresh_dict()
         temporal_feature_dict = {
             key: full_feature_dict[key]
             for key in set(full_feature_dict) - set(distribution_features_dict)
