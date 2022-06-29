@@ -17,6 +17,5 @@ from .encoders import (
     SpikeTrainToFiringRateTransform,
 )
 
-from .helpers import distribution_features_tsfresh_dict
-
+from .helpers import distribution_features_tsfresh_dict, simple_undersampling
 from .load_datasets import load_fcx1, load_retina, load_allen

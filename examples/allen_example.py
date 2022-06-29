@@ -9,6 +9,7 @@ from pyspikelib.config import get_common_argument_parser, Config
 from pyspikelib import load_allen
 from pyspikelib.helpers import tsfresh_fit_predict
 
+
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
