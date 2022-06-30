@@ -1,6 +1,8 @@
 import logging
 import pickle
+import random
 
+import torch
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score, accuracy_score
@@ -70,7 +72,7 @@ def train_test_common_features(train_df, test_df):
 
 
 def simple_undersampling(
-    X, y, subsample_size=None, pandas=True
+    X, y, subsample_size=None, pandas=False
 ):
     dominant_class_label = int(y.mean() > 0.5)
     X = pd.DataFrame(X) if not pandas else X
@@ -94,40 +96,35 @@ def simple_undersampling(
             X_undersampled.iloc[sample_indices, :],
             y_undersampled[sample_indices],
         )
-    return X_undersampled, y_undersampled
+    return X_undersampled.values, y_undersampled
 
 
-def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test,
-                        config, load_dataset_from=None, dump_dataset_to=None):
-
-    if load_dataset_from is not None:
-        with open(load_dataset_from, 'rb') as f:
+def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None):
+    if cache_file is not None:
+        with open(cache_file, 'rb') as f:
             X_train, y_train, X_test, y_test = pickle.load(f)
     else:
         logging.info('Started time series vectorization and preprocessing')
 
-        vectorizer = transforms.TsfreshVectorizeTransform(feature_set=config.feature_set)
+        vectorizer = transforms.TsfreshVectorizeTransform(feature_set=config.tsfresh_feature_set)
         X_train = vectorizer.transform(X_train)
         X_test = vectorizer.transform(X_test)
 
         preprocessing = transforms.TsfreshFeaturePreprocessorPipeline(
-            do_scaling=config.scale, remove_low_variance=config.remove_low_variance
+            do_scaling=config.tsfresh_scale_features, remove_low_variance=config.tsfresh_remove_low_variance
         ).construct_pipeline()
         preprocessing.fit(X_train)
         X_train = preprocessing.transform(X_train)
         X_test = preprocessing.transform(X_test)
 
-    logging.info(
-        'Dataset shape after preprocessing: train {}, test {}'.format(X_train.shape, X_test.shape)
-    )
-    logging.info(
-        'Average target value: train {}, test {}'.format(y_train.mean(), y_test.mean())
-    )
+        if cache_file is not None:
+            with open(cache_file, 'wb') as f:
+                pickle.dump((X_train, y_train, X_test, y_test), f)
 
-    if dump_dataset_to is not None:
-        with open(dump_dataset_to, 'wb') as f:
-            pickle.dump((X_train, y_train, X_test, y_test), f)
+    return X_train, X_test, y_train, y_test
 
+
+def subsampled_fit_predict(model, X_train, X_test, y_train, y_test, config):
     result_table_columns = ['trial', 'feature_set',
                             'accuracy_test', 'auc_roc_test',
                             'accuracy_train', 'auc_roc_train']
@@ -181,3 +178,14 @@ def tsfresh_fit_predict(model, X_train, X_test, y_train, y_test,
         results['trial'].append(trial_idx)
 
     return pd.DataFrame(results)
+
+
+def set_random_seed(seed_value):
+    np.random.seed(seed_value)  # cpu vars
+    torch.manual_seed(seed_value)  # cpu  vars
+    random.seed(seed_value)  # Python
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed_value)
+        torch.cuda.manual_seed_all(seed_value)  # gpu vars
+        torch.backends.cudnn.deterministic = True  # needed
+        torch.backends.cudnn.benchmark = False

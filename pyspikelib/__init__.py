@@ -1,5 +1,5 @@
 from .plotting import beautify_mpl, prettify, \
-    feature_scatter_plot, decompose_scatter_plot
+    feature_scatter_plot, embedding_scatter_plot
 
 from .transforms import (
     TrainNormalizeTransform,
@@ -18,4 +18,4 @@ from .encoders import (
 )
 
 from .helpers import distribution_features_tsfresh_dict, simple_undersampling
-from .load_datasets import load_fcx1, load_retina, load_allen
+from .load_datasets import load_fcx1, load_retina, load_allen, load_fcx1_temporal

@@ -42,6 +42,7 @@ INSTALL_REQUIRES = [
     'psutil',
     'gdown',
     'pyarrow',
+    'chika',
 ]
 
 EXTRAS_REQUIRE = {'tests': ['pytest'], 'data': ['fastparquet']}

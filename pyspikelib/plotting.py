@@ -150,7 +150,7 @@ def feature_scatter_plot(
     return ax
 
 
-def decompose_scatter_plot(
+def embedding_scatter_plot(
     X,
     y,
     features,
