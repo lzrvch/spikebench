@@ -15,7 +15,7 @@ from sklearn.model_selection import GroupShuffleSplit
 
 import pyspikelib.transforms as transforms
 from pyspikelib.dataset_adapters import fcx1_dataset, retina_dataset, allen_dataset
-from pyspikelib.encoders import ISIShuffleTransform
+from pyspikelib.encoders import ISIShuffleTransform, TrainBinarizationTransform
 
 
 def gunzip_shutil(source_filepath, dest_filepath, block_size=65536):
@@ -38,7 +38,7 @@ def download_fcx1(data_path):
 
 
 def load_fcx1(dataset_path='./data/fcx1', random_seed=0, test_size=0.3,
-    n_samples=None, window_size=200, step_size=100):
+    n_samples=None, window_size=200, step_size=100, encoding='isi', bin_size=80):
     DELIMITER = ','
     dataset_path = Path(dataset_path)
 
@@ -61,12 +61,9 @@ def load_fcx1(dataset_path='./data/fcx1', random_seed=0, test_size=0.3,
     X_train = pd.DataFrame({'series': X_train, 'groups': groups[train_index]})
     X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
-    normalizer = transforms.TrainNormalizeTransform(
-        window=window_size, step=step_size, n_samples=n_samples
-    )
-    X_train, y_train, groups_train = normalizer.transform(X_train, y_train, delimiter=DELIMITER)
-    X_test, y_test, groups_test = normalizer.transform(X_test, y_test, delimiter=DELIMITER)
-    return X_train, X_test, y_train, y_test, groups_train, groups_test
+    return encode_spike_trains(X_train, X_test, y_train, y_test, delimiter=DELIMITER,
+        encoding=encoding, window_size=window_size, step_size=step_size,
+        n_samples=n_samples, bin_size=bin_size)
 
 
 def download_retina(data_path):
@@ -85,9 +82,10 @@ def download_retina(data_path):
 
 def load_retina(dataset_path='./data/retina', state1='randomly_moving_bar',
     state2='white_noise_checkerboard', random_seed=0, test_size=0.3, n_samples=None,
-    window_size=200, step_size=200):
+    window_size=200, step_size=200, encoding='isi', bin_size=80):
 
     dataset_path = Path(dataset_path)
+    DELIMITER = None
 
     if not os.path.exists(dataset_path):
         dataset_path.mkdir(parents=True, exist_ok=True)
@@ -122,12 +120,10 @@ def load_retina(dataset_path='./data/retina', state1='randomly_moving_bar',
     X_train = pd.DataFrame({'series': X_train, 'groups': groups[train_index]})
     X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
-    normalizer = transforms.TrainNormalizeTransform(
-        window=window_size, step=step_size, n_samples=n_samples
-    )
-    X_train, y_train, groups_train = normalizer.transform(X_train, y_train, delimiter=None)
-    X_test, y_test, groups_test = normalizer.transform(X_test, y_test, delimiter=None)
-    return X_train, X_test, y_train, y_test, groups_train, groups_test
+    return encode_spike_trains(X_train, X_test, y_train, y_test, delimiter=DELIMITER,
+        encoding=encoding, window_size=window_size, step_size=step_size,
+        n_samples=n_samples, bin_size=bin_size)
+
 
 
 def download_allen(data_path):
@@ -142,7 +138,7 @@ def download_allen(data_path):
 
 
 def load_allen(dataset_path='./data/allen', random_seed=0, test_size=0.3,
-    n_samples=None, window_size=50, step_size=20):
+    n_samples=None, window_size=50, step_size=20, encoding='isi', bin_size=80):
     DELIMITER = ','
     dataset_path = Path(dataset_path)
 
@@ -169,16 +165,14 @@ def load_allen(dataset_path='./data/allen', random_seed=0, test_size=0.3,
     X_train = pd.DataFrame({'series': X_train, 'groups': groups[train_index]})
     X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
-    normalizer = transforms.TrainNormalizeTransform(
-        window=window_size, step=step_size, n_samples=n_samples
-    )
-    X_train, y_train, groups_train = normalizer.transform(X_train, y_train, delimiter=DELIMITER)
-    X_test, y_test, groups_test = normalizer.transform(X_test, y_test, delimiter=DELIMITER)
-    return X_train, X_test, y_train, y_test, groups_train, groups_test
+    return encode_spike_trains(X_train, X_test, y_train, y_test, delimiter=DELIMITER,
+        encoding=encoding, window_size=window_size, step_size=step_size,
+        n_samples=n_samples, bin_size=bin_size)
+
 
 
 def load_fcx1_temporal(dataset_path='./data/fcx1', random_seed=0, test_size=0.3,
-    n_samples=None, window_size=200, step_size=100):
+    n_samples=None, window_size=200, step_size=100, encoding='isi', bin_size=80):
     DELIMITER = ','
     dataset_path = Path(dataset_path)
 
@@ -205,9 +199,23 @@ def load_fcx1_temporal(dataset_path='./data/fcx1', random_seed=0, test_size=0.3,
     X_train = pd.DataFrame({'series': X_train, 'groups': groups[train_index]})
     X_test = pd.DataFrame({'series': X_test, 'groups': groups[test_index]})
 
+    return encode_spike_trains(X_train, X_test, y_train, y_test, delimiter=DELIMITER,
+        encoding=encoding, window_size=window_size, step_size=step_size,
+        n_samples=n_samples, bin_size=bin_size)
+
+
+def encode_spike_trains(X_train, X_test, y_train, y_test, delimiter, encoding='isi',
+    window_size=200, step_size=100, n_samples=None, bin_size=80):
     normalizer = transforms.TrainNormalizeTransform(
         window=window_size, step=step_size, n_samples=n_samples
     )
-    X_train, y_train, groups_train = normalizer.transform(X_train, y_train, delimiter=DELIMITER)
-    X_test, y_test, groups_test = normalizer.transform(X_test, y_test, delimiter=DELIMITER)
+    X_train, y_train, groups_train = normalizer.transform(X_train, y_train, delimiter=delimiter)
+    X_test, y_test, groups_test = normalizer.transform(X_test, y_test, delimiter=delimiter)
+    if encoding == 'sce':
+        binarizer = TrainBinarizationTransform(bin_size=bin_size)
+        X_train = binarizer.transform(pd.DataFrame({'series': [' '.join([str(v) for v in X_train[idx, :]])
+                                                                for idx in range(X_train.shape[0])]}))
+        X_test = binarizer.transform(pd.DataFrame({'series': [' '.join([str(v) for v in X_test[idx, :]])
+                                                                for idx in range(X_test.shape[0])]}))
+
     return X_train, X_test, y_train, y_test, groups_train, groups_test

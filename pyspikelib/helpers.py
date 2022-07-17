@@ -1,11 +1,12 @@
 import logging
 import pickle
 import random
+from pathlib import Path
 
-import torch
 import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_auc_score, accuracy_score
+import torch
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 import pyspikelib.transforms as transforms
 
@@ -100,7 +101,7 @@ def simple_undersampling(
 
 
 def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None):
-    if cache_file is not None:
+    if cache_file is not None and Path(cache_file).exists():
         with open(cache_file, 'rb') as f:
             X_train, y_train, X_test, y_test = pickle.load(f)
     else:
@@ -124,21 +125,11 @@ def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None)
     return X_train, X_test, y_train, y_test
 
 
-def subsampled_fit_predict(model, X_train, X_test, y_train, y_test, config):
-    result_table_columns = ['trial', 'feature_set',
-                            'accuracy_test', 'auc_roc_test',
-                            'accuracy_train', 'auc_roc_train']
+def subsampled_fit_predict(model, X_train, X_test, y_train, y_test, config, predict_train=True):
+    result_table_columns = ['trial', 'accuracy_test', 'auc_roc_test']
+    if predict_train:
+        result_table_columns += ['accuracy_train', 'auc_roc_train']
     results = {key: [] for key in result_table_columns}
-    baseline_feature_names = [
-        'abs_energy',
-        'mean',
-        'median',
-        'minimum',
-        'maximum',
-        'standard_deviation',
-    ]
-    baseline_feature_names = ['value__' + name for name
-                              in baseline_feature_names]
     metrics_to_collect = {'accuracy': accuracy_score, 'auc_roc': roc_auc_score}
 
     logging.info(
@@ -153,28 +144,14 @@ def subsampled_fit_predict(model, X_train, X_test, y_train, y_test, config):
         )
 
         model.fit(X_train_sample_balanced, y_train_sample_balanced)
-        for (X, y), dataset_label in [((X_test_sample_balanced, y_test_sample_balanced), 'test'),
-                                      ((X_train_sample_balanced, y_train_sample_balanced), 'train')]:
+        val_sets = [((X_test_sample_balanced, y_test_sample_balanced), 'test')]
+        if predict_train:
+            val_sets += [((X_train_sample_balanced, y_train_sample_balanced), 'train')]
+        for (X, y), dataset_label in val_sets:
             for metric_name, metric_fn in metrics_to_collect.items():
                 model_predictions = model.predict(X) \
                     if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
                 results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
-        results['feature_set'].append(config.feature_set)
-        results['trial'].append(trial_idx)
-
-        X_train_sample_balanced = X_train_sample_balanced.loc[:, baseline_feature_names]
-        X_test_sample_balanced = X_test_sample_balanced.loc[:, baseline_feature_names]
-
-        model.fit(X_train_sample_balanced, y_train_sample_balanced)
-
-        for (X, y), dataset_label in [((X_test_sample_balanced, y_test_sample_balanced), 'test'),
-                                      ((X_train_sample_balanced, y_train_sample_balanced), 'train')]:
-            for metric_name, metric_fn in metrics_to_collect.items():
-                model_predictions = model.predict(X) \
-                    if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
-                results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
-
-        results['feature_set'].append('simple_baseline')
         results['trial'].append(trial_idx)
 
     return pd.DataFrame(results)

@@ -1,25 +1,18 @@
 from functools import partial
 
-import psutil
 import numpy as np
 import pandas as pd
-
+import psutil
+import tsfresh.utilities.dataframe_functions as tsfresh_utils
 from sklearn.base import TransformerMixin
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
-
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
-import tsfresh.utilities.dataframe_functions as tsfresh_utils
 
 import pyspikelib.helpers as helpers
-from pyspikelib.base_transforms import (
-    NoFitMixin,
-    DFTransform,
-    DFStandardScaler,
-    DFLowVarianceRemoval,
-)
-
+from pyspikelib.base_transforms import (DFLowVarianceRemoval, DFStandardScaler,
+                                        DFTransform, NoFitMixin)
 
 CPU_COUNT = psutil.cpu_count(logical=True)
 
@@ -113,6 +106,7 @@ class TsfreshVectorizeTransform(TransformerMixin, NoFitMixin):
             'distribution_features': distribution_features_dict,
             'temporal_features': temporal_feature_dict,
             'no_entropy': no_entropy_features_dict,
+            'full': full_feature_dict,
         }
         return feature_dict.get(feature_set, full_feature_dict)
 

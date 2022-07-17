@@ -1,16 +1,15 @@
 import logging
 import sys
 import warnings
-
-import chika
 from dataclasses import asdict
 
+import chika
+from imblearn.metrics import geometric_mean_score
+from pyspikelib import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from pyspikelib.helpers import (set_random_seed, simple_undersampling,
+                                tsfresh_vectorize)
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score
-
-from pyspikelib import load_fcx1, load_retina, load_allen, load_fcx1_temporal
-from pyspikelib.helpers import set_random_seed, simple_undersampling, tsfresh_vectorize
-
+from sklearn.metrics import cohen_kappa_score, roc_auc_score
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -36,9 +35,12 @@ class Config:
     seed: int = 0
     dataset: str = 'retina'
     balance_train: bool = False
+    balance_test: bool = False
     tsfresh_scale_features: bool = True
     tsfresh_remove_low_variance: bool = True
     tsfresh_feature_set: str = 'distribution_features'
+    window_size: int = 200
+    step_size: int = 100
 
 
 @chika.main(cfg_cls=Config)
@@ -53,6 +55,8 @@ def main(cfg: Config):
     X_train, X_test, y_train, y_test, gr_train, gr_test = loader_fn(random_seed=cfg.seed)
     if cfg.balance_train:
         X_train, y_train = simple_undersampling(X_train, y_train)
+    if cfg.balance_test:
+        X_test, y_test = simple_undersampling(X_test, y_test)
 
     X_train, X_test, y_train, y_test = tsfresh_vectorize(X_train, X_test, y_train, y_test, cfg)
 
@@ -69,8 +73,13 @@ def main(cfg: Config):
         n_jobs=-1,
     )
     model.fit(X_train, y_train)
-    f1_value = f1_score(y_test, model.predict(X_test))
-    logging.info(f'F1 score value on {cfg.dataset} test set (random forest): {f1_value}')
+
+    roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+    gmean = geometric_mean_score(y_test, model.predict(X_test))
+    kappa = cohen_kappa_score(y_test, model.predict(X_test))
+    logging.info(f'AUC ROC score value on {cfg.dataset} test set (random forest): {roc_auc}')
+    logging.info(f'G-mean score value on {cfg.dataset} test set (random forest): {gmean}')
+    logging.info(f'Kappa score value on {cfg.dataset} test set (random forest): {kappa}')
 
 
 if __name__ == '__main__':
