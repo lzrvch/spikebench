@@ -5,8 +5,8 @@ from dataclasses import asdict
 
 import chika
 from imblearn.metrics import geometric_mean_score
-from pyspikelib import load_allen, load_fcx1, load_fcx1_temporal, load_retina
-from pyspikelib.helpers import set_random_seed, simple_undersampling
+from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench.helpers import set_random_seed, simple_undersampling
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
 
@@ -41,7 +41,7 @@ def main(cfg: Config):
     set_random_seed(cfg.seed)
 
     if cfg.wandb_logging:
-        wandb.init(project="pyspikelib", config=asdict(cfg))
+        wandb.init(project="spikebench", config=asdict(cfg))
     logging.info(
         f'Running job with config {asdict(cfg)}'
     )

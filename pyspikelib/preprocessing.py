@@ -3,8 +3,8 @@ import pandas as pd
 import scipy.signal as signal
 from pathos.multiprocessing import ProcessingPool as Pool
 
-import pyspikelib.oopsi as oopsi
-from pyspikelib import SpikeTrainTransform
+import spikebench.oopsi as oopsi
+from spikebench import SpikeTrainTransform
 
 
 

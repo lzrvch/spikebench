@@ -7,11 +7,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.model_selection import GroupKFold
 
-import pyspikelib.mpladeq as mpladeq
+import spikebench.mpladeq as mpladeq
 from examples.dataset_adapters import fcx1_dataset
 from experiments.model_tuning.h2o_runner import H2ORunner
-from pyspikelib import TrainNormalizeTransform
-from pyspikelib.utils import simple_undersampling
+from spikebench import TrainNormalizeTransform
+from spikebench.utils import simple_undersampling
 
 mpladeq.beautify_mpl()
 # %%

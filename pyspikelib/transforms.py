@@ -10,8 +10,8 @@ from sklearn.pipeline import Pipeline
 from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
 
-import pyspikelib.helpers as helpers
-from pyspikelib.base_transforms import (DFLowVarianceRemoval, DFStandardScaler,
+import spikebench.helpers as helpers
+from spikebench.base_transforms import (DFLowVarianceRemoval, DFStandardScaler,
                                         DFTransform, NoFitMixin)
 
 CPU_COUNT = psutil.cpu_count(logical=True)

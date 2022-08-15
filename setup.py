@@ -1,4 +1,4 @@
-"""pyspikelib: A set of tools for neuronal spiking data mining"""
+"""spikebench: A set of tools for neuronal spiking data mining"""
 
 import os
 import re
@@ -16,12 +16,12 @@ def read(*parts):
         return fp.read()
 
 
-DISTNAME = 'pyspikelib'
-DESCRIPTION = 'pyspikelib: A set of tools for neuronal spiking data mining'
+DISTNAME = 'spikebench'
+DESCRIPTION = 'spikebench: A set of tools for neuronal spiking data mining'
 MAINTAINER = 'Ivan Lazarevich'
 MAINTAINER_EMAIL = 'ivan@lazarevi.ch'
-URL = 'https://github.com/vanyalzr/pyspikelib'
-DOWNLOAD_URL = 'https://github.com/vanyalzr/pyspikelib'
+URL = 'https://github.com/vanyalzr/spikebench'
+DOWNLOAD_URL = 'https://github.com/vanyalzr/spikebench'
 VERSION = '1.0'
 LONG_DESCRIPTION_CONTENT_TYPE = 'text/markdown'
 

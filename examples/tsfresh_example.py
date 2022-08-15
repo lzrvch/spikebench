@@ -5,8 +5,8 @@ from dataclasses import asdict
 
 import chika
 from imblearn.metrics import geometric_mean_score
-from pyspikelib import load_allen, load_fcx1, load_fcx1_temporal, load_retina
-from pyspikelib.helpers import (set_random_seed, simple_undersampling,
+from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench.helpers import (set_random_seed, simple_undersampling,
                                 tsfresh_vectorize)
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import cohen_kappa_score, roc_auc_score

@@ -8,7 +8,7 @@ import pandas as pd
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
 
-import pyspikelib.transforms as transforms
+import spikebench.transforms as transforms
 
 
 def distribution_features_tsfresh_dict():
@@ -125,17 +125,17 @@ def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None)
     return X_train, X_test, y_train, y_test
 
 
-def subsampled_fit_predict(model, X_train, X_test, y_train, y_test, config, predict_train=True):
-    result_table_columns = ['trial', 'accuracy_test', 'auc_roc_test']
+def subsampled_fit_predict(models, X_train, X_test, y_train, y_test, config, predict_train=True):
+    result_table_columns = ['model_name', 'trial', 'accuracy_test', 'auc_roc_test']
     if predict_train:
         result_table_columns += ['accuracy_train', 'auc_roc_train']
     results = {key: [] for key in result_table_columns}
     metrics_to_collect = {'accuracy': accuracy_score, 'auc_roc': roc_auc_score}
 
-    logging.info(
-        'Training classifiers on dataset subsamples for {} trials'.format(config.trials)
-    )
     for trial_idx in range(config.trials):
+        logging.info(
+            f'Training models on subsample # {trial_idx}/{config.trials}'
+        )
         X_train_sample_balanced, y_train_sample_balanced = simple_undersampling(
             X_train, y_train, subsample_size=config.train_subsample_factor,
         )
@@ -143,18 +143,21 @@ def subsampled_fit_predict(model, X_train, X_test, y_train, y_test, config, pred
             X_test, y_test, subsample_size=config.test_subsample_factor,
         )
 
-        model.fit(X_train_sample_balanced, y_train_sample_balanced)
-        val_sets = [((X_test_sample_balanced, y_test_sample_balanced), 'test')]
-        if predict_train:
-            val_sets += [((X_train_sample_balanced, y_train_sample_balanced), 'train')]
-        for (X, y), dataset_label in val_sets:
-            for metric_name, metric_fn in metrics_to_collect.items():
-                model_predictions = model.predict(X) \
-                    if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
-                results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
-        results['trial'].append(trial_idx)
+        for model_name, model in models.items():
+            logging.info(f'Fitting model {model_name}')
+            model.fit(X_train_sample_balanced, y_train_sample_balanced)
+            val_sets = [((X_test_sample_balanced, y_test_sample_balanced), 'test')]
+            if predict_train:
+                val_sets += [((X_train_sample_balanced, y_train_sample_balanced), 'train')]
+            for (X, y), dataset_label in val_sets:
+                for metric_name, metric_fn in metrics_to_collect.items():
+                    model_predictions = model.predict(X) \
+                        if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
+                    results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
+            results['trial'].append(trial_idx)
+            results['model_name'].append(model_name)
 
-    return pd.DataFrame(results)
+    return pd.DataFrame(results).sort_values(by='model_name')
 
 
 def set_random_seed(seed_value):

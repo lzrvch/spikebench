@@ -11,7 +11,7 @@ from neo.core import SpikeTrain
 from quantities import ms
 from sklearn.base import TransformerMixin
 
-from pyspikelib.base_transforms import NoFitMixin
+from spikebench.base_transforms import NoFitMixin
 
 
 class SpikeTrainTransform(TransformerMixin, NoFitMixin):

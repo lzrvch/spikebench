@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 
-import pyspikelib.transforms as transforms
-from pyspikelib.dataset_adapters import fcx1_dataset, retina_dataset, allen_dataset
-from pyspikelib.encoders import ISIShuffleTransform, TrainBinarizationTransform
+import spikebench.transforms as transforms
+from spikebench.dataset_adapters import fcx1_dataset, retina_dataset, allen_dataset
+from spikebench.encoders import ISIShuffleTransform, TrainBinarizationTransform
 
 
 def gunzip_shutil(source_filepath, dest_filepath, block_size=65536):
