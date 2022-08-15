@@ -1,1 +1,1 @@
-### pyspikelib is a spike train classification benchmark
+### spikebench is a spike train classification benchmark
