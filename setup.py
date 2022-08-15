@@ -1,8 +1,8 @@
-"""spikebench: A set of tools for neuronal spiking data mining"""
+"""spikebench: an open spike train time-series classification benchmark"""
 
-import os
-import re
 import codecs
+import os
+
 import setuptools
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -17,7 +17,7 @@ def read(*parts):
 
 
 DISTNAME = 'spikebench'
-DESCRIPTION = 'spikebench: A set of tools for neuronal spiking data mining'
+DESCRIPTION = 'spikebench: an open spike train time-series classification benchmark'
 MAINTAINER = 'Ivan Lazarevich'
 MAINTAINER_EMAIL = 'ivan@lazarevi.ch'
 URL = 'https://github.com/vanyalzr/spikebench'
@@ -57,7 +57,6 @@ setuptools.setup(
     long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
     url=URL,
     download_url=DOWNLOAD_URL,
-    packages=setuptools.find_packages(exclude=['data', 'examples', 'experiments']),
     classifiers=[
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',
