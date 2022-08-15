@@ -1,0 +1,2 @@
+model_name,roc_auc,gmean,cohen_kappa
+tsai_fcn_plus,0.8103093613587214,0.734851617539879,0.4517883822811032

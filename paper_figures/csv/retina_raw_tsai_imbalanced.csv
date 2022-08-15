@@ -1,0 +1,2 @@
+model_name,roc_auc,gmean,cohen_kappa
+tsai_xceptionime_plus,0.9753102740609941,0.9343300038687973,0.8431597770100873
