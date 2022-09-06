@@ -5,8 +5,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import psutil
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
+from tsfresh import extract_features
 
 import spikebench.transforms as transforms
 
@@ -110,6 +112,46 @@ def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None)
         vectorizer = transforms.TsfreshVectorizeTransform(feature_set=config.tsfresh_feature_set)
         X_train = vectorizer.transform(X_train)
         X_test = vectorizer.transform(X_test)
+
+        preprocessing = transforms.TsfreshFeaturePreprocessorPipeline(
+            do_scaling=config.tsfresh_scale_features, remove_low_variance=config.tsfresh_remove_low_variance
+        ).construct_pipeline()
+        preprocessing.fit(X_train)
+        X_train = preprocessing.transform(X_train)
+        X_test = preprocessing.transform(X_test)
+
+        if cache_file is not None:
+            with open(cache_file, 'wb') as f:
+                pickle.dump((X_train, y_train, X_test, y_test), f)
+
+    return X_train, X_test, y_train, y_test
+
+
+def tsfresh_vectorize_spike_count(X_train, X_test, y_train, y_test, config, cache_file=None):
+    if cache_file is not None and Path(cache_file).exists():
+        with open(cache_file, 'rb') as f:
+            X_train, y_train, X_test, y_test = pickle.load(f)
+    else:
+        logging.info('Started time series vectorization and preprocessing')
+
+        def extract_tsfresh_feats(X):
+            X = X.series.apply(lambda row: np.array([float(v) for v in row.split()]).astype(np.float32))
+            df_train = pd.DataFrame(columns=['id', 'time', 'value'], dtype=float)
+            for idx, ts in enumerate(X):
+                tmp = pd.DataFrame(ts, columns=['value'])
+                tmp['id'] = [idx] * ts.shape[0]
+                tmp['time'] = list(range(ts.shape[0]))
+                df_train = pd.concat([df_train, tmp], ignore_index=True, sort=False)
+            return extract_features(
+                df_train,
+                column_id='id',
+                column_sort='time',
+                disable_progressbar=False,
+                n_jobs=psutil.cpu_count(logical=True),
+            )
+
+        X_train = extract_tsfresh_feats(X_train)
+        X_test = extract_tsfresh_feats(X_test)
 
         preprocessing = transforms.TsfreshFeaturePreprocessorPipeline(
             do_scaling=config.tsfresh_scale_features, remove_low_variance=config.tsfresh_remove_low_variance

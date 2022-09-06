@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 from fastai.callback.tracker import SaveModelCallback
 from imblearn.metrics import geometric_mean_score
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
-from spikebench.helpers import set_random_seed
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.preprocessing import StandardScaler
+from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench.helpers import set_random_seed
 from tsai.all import *
 
 DATASET_NAME_LOADER_MAP = {
@@ -28,8 +28,10 @@ OPTIMIZERS = {
 }
 
 model_zoo = {
-    # 'xceptionime_plus': XceptionTimePlus,
+    'inceptiontime_plus': InceptionTimePlus,
+    'xceptionime_plus': XceptionTimePlus,
     'fcn_plus': FCNPlus,
+    'resnet_plus': ResNetPlus,
 }
 
 @chika.config
@@ -37,13 +39,14 @@ class Config:
     seed: int = 0
     dataset: str = 'retina'
     preprocessing: bool = True
-    epochs: int = 50
-    lr: float = 1e-3
+    epochs: int = 200
+    lr: float = 1e-1
     optimizer: str = 'sgd'
-    weight_decay: float = None # 1e-4
+    weight_decay: float = 1e-4
     batch_size: int = 128
     test_batch_size: int = 512
     workers: int = 0
+    val_split: float = None
 
 
 @chika.main(cfg_cls=Config)
@@ -69,11 +72,10 @@ def main(cfg: Config):
         scaler = StandardScaler()
         X_train = np.log1p(X_train)
         X_test = np.log1p(X_test)
+        X_val = np.log1p(X_val)
         X_train = scaler.fit_transform(X_train)[:, np.newaxis, :]
         X_test = scaler.transform(X_test)[:, np.newaxis, :]
-        if cfg.val_split is not None:
-            X_val = scaler.transform(X_val)[:, np.newaxis, :]
-            X_val = np.log1p(X_val)
+        X_val = scaler.transform(X_val)[:, np.newaxis, :]
 
     logging.info(
         f'Dataset shape after preprocessing: train {X_train.shape}, val {X_val.shape}, test {X_test.shape}'

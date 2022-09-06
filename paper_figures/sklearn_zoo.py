@@ -7,12 +7,12 @@ import chika
 import numpy as np
 import pandas as pd
 from imblearn.metrics import geometric_mean_score
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
-from spikebench.helpers import set_random_seed, subsampled_fit_predict
 from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler
+from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench.helpers import set_random_seed, subsampled_fit_predict
 from xgboost import XGBClassifier
 
 DATASET_NAME_LOADER_MAP = {
@@ -83,7 +83,7 @@ class Config:
     preprocessing: bool = True
     train_subsample_factor: float = 0.7
     test_subsample_factor: float = 0.7
-    trials: int = 10
+    trials: int = 5
 
 
 @chika.main(cfg_cls=Config)

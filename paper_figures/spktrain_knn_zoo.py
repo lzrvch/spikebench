@@ -40,7 +40,7 @@ class Config:
     balanced: bool = False
     train_subsample_factor: float = 0.7
     test_subsample_factor: float = 0.7
-    trials: int = 10
+    trials: int = 5
 
 
 @chika.main(cfg_cls=Config)

@@ -6,15 +6,14 @@ from dataclasses import asdict
 import chika
 import numpy as np
 import pandas as pd
-from catboost import CatBoostClassifier
 from imblearn.metrics import geometric_mean_score
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
-from spikebench.helpers import (set_random_seed, subsampled_fit_predict,
-                                tsfresh_vectorize)
 from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler
+from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench.helpers import (set_random_seed, subsampled_fit_predict,
+                                tsfresh_vectorize)
 from xgboost import XGBClassifier
 
 DATASET_NAME_LOADER_MAP = {
@@ -25,7 +24,7 @@ DATASET_NAME_LOADER_MAP = {
 }
 
 
-model_zoo_ = {
+model_zoo = {
         'random_forest': RandomForestClassifier(
             n_estimators=500,
             random_state=0,
@@ -77,14 +76,6 @@ model_zoo_ = {
 }
 
 
-model_zoo = {
-    'catboost': CatBoostClassifier(
-        iterations=300,
-        learning_rate=0.01,
-        depth=15,
-    )
-}
-
 @chika.config
 class Config:
     seed: int = 0
@@ -93,7 +84,7 @@ class Config:
     preprocessing: bool = True
     train_subsample_factor: float = 0.7
     test_subsample_factor: float = 0.7
-    trials: int = 10
+    trials: int = 5
     tsfresh_feature_set: str = None
     tsfresh_remove_low_variance: bool = True
     tsfresh_scale_features: bool = True
@@ -141,8 +132,7 @@ def main(cfg: Config):
             for model_name, model in models.items():
 
                 logging.info(f'Fitting model {model_name}')
-                # model.fit(X_train, y_train)
-                model.fit(X_train, y_train, eval_set=(X_test, y_test))
+                model.fit(X_train, y_train)
                 test_preds = model.predict(X_test)
                 test_probas = model.predict_proba(X_test)[:, 1]
 
@@ -153,7 +143,7 @@ def main(cfg: Config):
 
                 res_table = pd.DataFrame(results)
                 logging.info(f'Validation metrics\n{res_table}')
-                # res_table.to_csv(f'./csv/{cfg.dataset}_{feature_set}_tsfresh_imbalanced.csv', index=False)
+                res_table.to_csv(f'./csv/{cfg.dataset}_{feature_set}_tsfresh_imbalanced.csv', index=False)
 
 
 if __name__ == '__main__':
