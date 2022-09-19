@@ -8,6 +8,7 @@ import pandas as pd
 import psutil
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
+from tqdm import tqdm
 from tsfresh import extract_features
 
 import spikebench.transforms as transforms
@@ -137,7 +138,8 @@ def tsfresh_vectorize_spike_count(X_train, X_test, y_train, y_test, config, cach
         def extract_tsfresh_feats(X):
             X = X.series.apply(lambda row: np.array([float(v) for v in row.split()]).astype(np.float32))
             df_train = pd.DataFrame(columns=['id', 'time', 'value'], dtype=float)
-            for idx, ts in enumerate(X):
+
+            for idx, ts in tqdm(enumerate(X)):
                 tmp = pd.DataFrame(ts, columns=['value'])
                 tmp['id'] = [idx] * ts.shape[0]
                 tmp['time'] = list(range(ts.shape[0]))

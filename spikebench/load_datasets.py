@@ -1,21 +1,22 @@
+import gzip
 import os
 import os.path
+import shutil
+import zipfile
 from copy import deepcopy
-from pickle import NONE
 from pathlib import Path
 
 import gdown
-import gzip
-import shutil
-import zipfile
-
 import numpy as np
 import pandas as pd
+from scipy.stats import truncnorm
 from sklearn.model_selection import GroupShuffleSplit
 
 import spikebench.transforms as transforms
-from spikebench.dataset_adapters import fcx1_dataset, retina_dataset, allen_dataset
-from spikebench.encoders import ISIShuffleTransform, TrainBinarizationTransform
+from spikebench.dataset_adapters import (allen_dataset, fcx1_dataset,
+                                         retina_dataset)
+from spikebench.encoders import (DFSpikeTrainTransform,
+                                 TrainBinarizationTransform)
 
 
 def gunzip_shutil(source_filepath, dest_filepath, block_size=65536):
@@ -171,26 +172,61 @@ def load_allen(dataset_path='./data/allen', random_seed=0, test_size=0.3,
 
 
 
-def load_fcx1_temporal(dataset_path='./data/fcx1', random_seed=0, test_size=0.3,
-    n_samples=None, window_size=200, step_size=100, encoding='isi', bin_size=80):
-    DELIMITER = ','
+def load_temporal(dataset_path='./data/fcx1', base_dataset='fcx1_wake', random_seed=0, test_size=0.3,
+    n_samples=None, window_size=200, step_size=100, encoding='isi', bin_size=80,
+    transform_func='reverse'):
     dataset_path = Path(dataset_path)
 
     if not os.path.exists(dataset_path):
         dataset_path.mkdir(parents=True, exist_ok=True)
-        download_fcx1(dataset_path)
+        if base_dataset in ('fcx1_wake', 'fcx1_sleep'):
+            download_fcx1(dataset_path)
+        elif base_dataset in ('retina_randomly_moving_bar', 'retina_white_noise_checkerboard'):
+            download_retina(dataset_path)
 
-    wake_spikes = fcx1_dataset(dataset_path / 'wake.parq')
+    DELIMITER = None
+    if base_dataset == 'fcx1_wake':
+        DELIMITER = ','
+        base_spikes = fcx1_dataset(dataset_path / 'wake.parq')
+    elif base_dataset == 'fcx1_sleep':
+        DELIMITER = ','
+        base_spikes = fcx1_dataset(dataset_path / 'sleep.parq')
+    elif base_dataset == 'retina_randomly_moving_bar':
+        base_spikes = retina_dataset(str(dataset_path / 'mode_paper_data'))['randomly_moving_bar']
+    elif base_dataset == 'retina_white_noise_checkerboard':
+        base_spikes = retina_dataset(str(dataset_path / 'mode_paper_data'))['white_noise_checkerboard']
 
-    shuffler = ISIShuffleTransform()
-    wake_spikes_shuffled = shuffler.transform(
-        deepcopy(wake_spikes), format='pandas', delimiter=DELIMITER
+    def shuffle_func(series):
+        np.random.shuffle(series)
+        return series
+
+    TRANSFORM_MAP = {
+        'reverse': lambda x: x[::-1],
+        'noise': lambda x: np.log1p(x) + truncnorm.rvs(
+            a=-0.5*np.std(np.log1p(x)),
+            b=0.5*np.std(np.log1p(x)),
+            scale=0.5*np.std(np.log1p(x)),
+            size=x.shape),
+        'shuffle': shuffle_func,
+    }
+
+    if transform_func in TRANSFORM_MAP:
+        transform_func = TRANSFORM_MAP[transform_func]
+
+    transformer = DFSpikeTrainTransform(func=transform_func)
+    transformed_spikes = transformer.transform(
+        deepcopy(base_spikes), format='pandas', delimiter=DELIMITER
+    )
+
+    transformer = DFSpikeTrainTransform(func=lambda x: np.log1p(x))
+    base_spikes = transformer.transform(
+        deepcopy(base_spikes), format='pandas', delimiter=DELIMITER
     )
 
     group_split = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=random_seed)
-    X = np.hstack([wake_spikes.series.values, wake_spikes_shuffled.series.values])
-    y = np.hstack([np.ones(wake_spikes.shape[0]), np.zeros(wake_spikes_shuffled.shape[0])])
-    groups = np.hstack([wake_spikes.groups.values, wake_spikes_shuffled.groups.values])
+    X = np.hstack([base_spikes.series.values, transformed_spikes.series.values])
+    y = np.hstack([np.ones(base_spikes.shape[0]), np.zeros(transformed_spikes.shape[0])])
+    groups = np.hstack([base_spikes.groups.values, transformed_spikes.groups.values])
 
     for train_index, test_index in group_split.split(X, y, groups):
         X_train, X_test = X[train_index], X[test_index]

@@ -18,4 +18,4 @@ from .encoders import (
 )
 
 from .helpers import distribution_features_tsfresh_dict, simple_undersampling
-from .load_datasets import load_fcx1, load_retina, load_allen, load_fcx1_temporal
+from .load_datasets import load_fcx1, load_retina, load_allen, load_temporal

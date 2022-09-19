@@ -166,5 +166,4 @@ class TsfreshFeaturePreprocessorPipeline:
             chained_transformers.append(('low_var_removal', DFLowVarianceRemoval()))
         if self.do_scaling:
             chained_transformers.append(('standard_scaling', DFStandardScaler()))
-        # TODO: add correlation removal step
         return Pipeline(chained_transformers)
