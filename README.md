@@ -8,6 +8,7 @@ Victor Kazantsev
 
 We propose _spikebench_ — a benchmark consisting of several individual neuron spike train classification tasks based on open-access data from a range of animals and brain regions. We demonstrate that it is possible to achieve meaningful results in such a challenging benchmark using the massive time-series feature extraction approach, which is found to perform similarly to state-of-the-art deep learning approaches.
 
+[Paper biorxiv link](https://www.biorxiv.org/content/10.1101/2021.03.24.436765v2)
 
 ## Abstract
 
