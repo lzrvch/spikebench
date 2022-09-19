@@ -33,3 +33,15 @@ from spikebench import load_retina
 X_train, X_test, y_train, y_test, groups_train, groups_test = load_retina()
 ```
 where `groups_train`, `groups_test` are neuron identifiers for samples in the training and testing set, respectively.
+
+The signature of all loader methods is the same (default values correspond to the ones used in the paper):
+
+```{.python}
+dataset_path, # location where the data will be downloaded to (if not already)
+random_seed, # random seed to generate train/test splits
+test_size, # float from 0 to 1 for the ratio of the testing set size
+window_size, # length of each time series sample (# ISIs per sample)
+step_size, # rolling window step (# ISIs) to generate samples
+encoding, # string equal to "isi" (ISI encoding) or "sce" (binned spike count encoding)
+bin_size, # bin size in case of binned spike count encoding
+```
