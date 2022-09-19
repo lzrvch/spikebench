@@ -5,11 +5,11 @@ from dataclasses import asdict
 
 import chika
 from imblearn.metrics import geometric_mean_score
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
-from spikebench.helpers import (set_random_seed, simple_undersampling,
-                                tsfresh_vectorize)
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
+from spikebench import load_allen, load_fcx1, load_retina
+from spikebench.helpers import (set_random_seed, simple_undersampling,
+                                tsfresh_vectorize)
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -19,7 +19,6 @@ DATASET_NAME_LOADER_MAP = {
     'fcx1': load_fcx1,
     'retina': load_retina,
     'allen': load_allen,
-    'fcx1_temporal': load_fcx1_temporal,
 }
 
 

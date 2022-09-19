@@ -1,0 +1,2 @@
+model_name,roc_auc,gmean,cohen_kappa
+tsfresh_full_random_forest,0.8692840910457272,0.7716234246849253,0.5432503276539974

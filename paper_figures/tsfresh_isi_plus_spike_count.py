@@ -11,7 +11,7 @@ from imblearn.metrics import geometric_mean_score
 from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench import load_allen, load_fcx1, load_temporal, load_retina
 from spikebench.helpers import set_random_seed, subsampled_fit_predict
 from xgboost import XGBClassifier
 
@@ -19,7 +19,7 @@ DATASET_NAME_LOADER_MAP = {
     'fcx1': load_fcx1,
     'retina': load_retina,
     'allen': load_allen,
-    'fcx1_temporal': load_fcx1_temporal,
+    'fcx1_temporal': load_temporal,
 }
 
 
@@ -83,6 +83,7 @@ class Config:
     train_subsample_factor: float = 0.7
     test_subsample_factor: float = 0.7
     trials: int = 5
+    out_folder: str = 'csv'
 
 
 @chika.main(cfg_cls=Config)
@@ -124,7 +125,7 @@ def main(cfg: Config):
 
         if cfg.balanced:
             results = subsampled_fit_predict(models, X_train, X_test, y_train, y_test, cfg)
-            results.to_csv(f'./csv/{cfg.dataset}_{feature_set}_sce_plus_isi_tsfresh_balanced.csv', index=False)
+            results.to_csv(f'{cfg.out_folder}/{cfg.dataset}_{feature_set}_sce_plus_isi_tsfresh_balanced.csv', index=False)
         else:
             results = {'model_name': [], 'roc_auc': [], 'gmean': [], 'cohen_kappa': []}
             for model_name, model in models.items():
@@ -141,7 +142,7 @@ def main(cfg: Config):
 
                 res_table = pd.DataFrame(results)
                 logging.info(f'Validation metrics\n{res_table}')
-                res_table.to_csv(f'./csv/{cfg.dataset}_{feature_set}_sce_plus_isi_tsfresh_imbalanced.csv', index=False)
+                res_table.to_csv(f'{cfg.out_folder}/{cfg.dataset}_{feature_set}_sce_plus_isi_tsfresh_imbalanced.csv', index=False)
 
 
 if __name__ == '__main__':

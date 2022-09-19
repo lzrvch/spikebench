@@ -5,7 +5,7 @@ from dataclasses import asdict
 
 import chika
 from imblearn.metrics import geometric_mean_score
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench import load_allen, load_fcx1, load_temporal, load_retina
 from spikebench.helpers import set_random_seed, simple_undersampling
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
@@ -16,7 +16,7 @@ DATASET_NAME_LOADER_MAP = {
     'fcx1': load_fcx1,
     'retina': load_retina,
     'allen': load_allen,
-    'fcx1_temporal': load_fcx1_temporal,
+    'fcx1_temporal': load_temporal,
 }
 
 

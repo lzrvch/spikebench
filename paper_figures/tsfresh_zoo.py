@@ -2,6 +2,7 @@ import logging
 import sys
 import warnings
 from dataclasses import asdict
+from functools import partial
 
 import chika
 import numpy as np
@@ -11,7 +12,7 @@ from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import cohen_kappa_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler
-from spikebench import load_allen, load_fcx1, load_fcx1_temporal, load_retina
+from spikebench import load_allen, load_fcx1, load_retina, load_temporal
 from spikebench.helpers import (set_random_seed, subsampled_fit_predict,
                                 tsfresh_vectorize)
 from xgboost import XGBClassifier
@@ -20,7 +21,18 @@ DATASET_NAME_LOADER_MAP = {
     'fcx1': load_fcx1,
     'retina': load_retina,
     'allen': load_allen,
-    'fcx1_temporal': load_fcx1_temporal,
+    'fcx1_wake_reverse': partial(load_temporal, base_dataset='fcx1_wake', transform_func='reverse', dataset_path='./data/fcx1'),
+    'fcx1_wake_shuffle': partial(load_temporal, base_dataset='fcx1_wake', transform_func='shuffle', dataset_path='./data/fcx1'),
+    'fcx1_wake_noise': partial(load_temporal, base_dataset='fcx1_wake', transform_func='noise', dataset_path='./data/fcx1'),
+    'fcx1_sleep_reverse': partial(load_temporal, base_dataset='fcx1_sleep', transform_func='reverse', dataset_path='./data/fcx1'),
+    'fcx1_sleep_shuffle': partial(load_temporal, base_dataset='fcx1_sleep', transform_func='shuffle', dataset_path='./data/fcx1'),
+    'fcx1_sleep_noise': partial(load_temporal, base_dataset='fcx1_sleep', transform_func='noise', dataset_path='./data/fcx1'),
+    'retina_bar_reverse': partial(load_temporal, base_dataset='retina_randomly_moving_bar', transform_func='reverse', dataset_path='./data/retina'),
+    'retina_bar_shuffle': partial(load_temporal, base_dataset='retina_randomly_moving_bar', transform_func='shuffle', dataset_path='./data/retina'),
+    'retina_bar_noise': partial(load_temporal, base_dataset='retina_randomly_moving_bar', transform_func='noise', dataset_path='./data/retina'),
+    'retina_checkerboard_reverse': partial(load_temporal, base_dataset='retina_white_noise_checkerboard', transform_func='reverse', dataset_path='./data/retina'),
+    'retina_checkerboard_shuffle': partial(load_temporal, base_dataset='retina_white_noise_checkerboard', transform_func='shuffle', dataset_path='./data/retina'),
+    'retina_checkerboard_noise': partial(load_temporal, base_dataset='retina_white_noise_checkerboard', transform_func='noise', dataset_path='./data/retina'),
 }
 
 
@@ -81,13 +93,14 @@ class Config:
     seed: int = 0
     dataset: str = 'retina'
     balanced: bool = False
-    preprocessing: bool = True
+    preprocessing: bool = False
     train_subsample_factor: float = 0.7
     test_subsample_factor: float = 0.7
     trials: int = 5
     tsfresh_feature_set: str = None
     tsfresh_remove_low_variance: bool = True
     tsfresh_scale_features: bool = True
+    out_folder: str = 'csv'
 
 
 @chika.main(cfg_cls=Config)
@@ -106,14 +119,14 @@ def main(cfg: Config):
         X_train, X_test, y_train, y_test, gr_train, gr_test = loader_fn(random_seed=cfg.seed)
 
         if cfg.preprocessing:
-            scaler = StandardScaler()
             X_train = np.log1p(X_train)
             X_test = np.log1p(X_test)
-            X_train = scaler.fit_transform(X_train)
-            X_test = scaler.transform(X_test)
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
 
         X_train, X_test, y_train, y_test = tsfresh_vectorize(X_train, X_test, y_train, y_test, cfg,
-                cache_file=f'./bin/tsfresh_features_{cfg.dataset}_{cfg.tsfresh_feature_set}.bin')
+            cache_file=f'./bin/tsfresh_features_{cfg.dataset}_{cfg.tsfresh_feature_set}.bin')
 
         logging.info(
             f'Dataset shape after preprocessing: train {X_train.shape}, test {X_test.shape}'
@@ -126,7 +139,7 @@ def main(cfg: Config):
 
         if cfg.balanced:
             results = subsampled_fit_predict(models, X_train, X_test, y_train, y_test, cfg)
-            results.to_csv(f'./csv/{cfg.dataset}_{feature_set}_tsfresh_balanced.csv', index=False)
+            results.to_csv(f'{cfg.out_folder}/{cfg.dataset}_{feature_set}_tsfresh_balanced.csv', index=False)
         else:
             results = {'model_name': [], 'roc_auc': [], 'gmean': [], 'cohen_kappa': []}
             for model_name, model in models.items():
@@ -143,7 +156,7 @@ def main(cfg: Config):
 
                 res_table = pd.DataFrame(results)
                 logging.info(f'Validation metrics\n{res_table}')
-                res_table.to_csv(f'./csv/{cfg.dataset}_{feature_set}_tsfresh_imbalanced.csv', index=False)
+                res_table.to_csv(f'{cfg.out_folder}/{cfg.dataset}_{feature_set}_tsfresh_imbalanced.csv', index=False)
 
 
 if __name__ == '__main__':

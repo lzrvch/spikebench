@@ -1,0 +1,2 @@
+model_name,roc_auc,gmean,cohen_kappa
+raw_knn_k1_ks,0.832123533165072,0.8316468772597069,0.5463881377391089
