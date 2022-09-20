@@ -76,9 +76,7 @@ def main(cfg: Config):
         for model_name, model in models.items():
 
             logging.info(f'Fitting model {model_name}')
-            n = 1000
-            idx = np.random.choice(range(X_train.shape[0]), n)
-            model.fit(X_train[idx, :], y_train[idx])
+            model.fit(X_train, y_train)
             test_preds = model.predict(X_test)
 
             results['model_name'].append(model_name)
