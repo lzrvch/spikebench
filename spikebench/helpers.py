@@ -75,21 +75,23 @@ def train_test_common_features(train_df, test_df):
     return train_df, test_df
 
 
-def simple_undersampling(
-    X, y, subsample_size=None, pandas=False
-):
+def simple_undersampling(X, y, subsample_size=None, pandas=False):
     dominant_class_label = int(y.mean() > 0.5)
     X = pd.DataFrame(X) if not pandas else X
     num_samples = (y != dominant_class_label).sum()
-    dominant_indices = np.random.choice(X.shape[0] - num_samples,
-                                        num_samples, replace=False)
+    dominant_indices = np.random.choice(
+        X.shape[0] - num_samples, num_samples, replace=False
+    )
     X_undersampled = pd.concat(
         [
             X.iloc[np.where(y != dominant_class_label)[0], :],
             X.iloc[np.where(y == dominant_class_label)[0], :].iloc[dominant_indices, :],
         ]
     )
-    y_undersampled = np.array([int(not dominant_class_label)] * num_samples + [dominant_class_label] * num_samples)
+    y_undersampled = np.array(
+        [int(not dominant_class_label)] * num_samples
+        + [dominant_class_label] * num_samples
+    )
     if subsample_size is not None:
         sample_indices = np.random.choice(
             X_undersampled.shape[0],
@@ -110,12 +112,15 @@ def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None)
     else:
         logging.info('Started time series vectorization and preprocessing')
 
-        vectorizer = transforms.TsfreshVectorizeTransform(feature_set=config.tsfresh_feature_set)
+        vectorizer = transforms.TsfreshVectorizeTransform(
+            feature_set=config.tsfresh_feature_set
+        )
         X_train = vectorizer.transform(X_train)
         X_test = vectorizer.transform(X_test)
 
         preprocessing = transforms.TsfreshFeaturePreprocessorPipeline(
-            do_scaling=config.tsfresh_scale_features, remove_low_variance=config.tsfresh_remove_low_variance
+            do_scaling=config.tsfresh_scale_features,
+            remove_low_variance=config.tsfresh_remove_low_variance,
         ).construct_pipeline()
         preprocessing.fit(X_train)
         X_train = preprocessing.transform(X_train)
@@ -128,7 +133,9 @@ def tsfresh_vectorize(X_train, X_test, y_train, y_test, config, cache_file=None)
     return X_train, X_test, y_train, y_test
 
 
-def tsfresh_vectorize_spike_count(X_train, X_test, y_train, y_test, config, cache_file=None):
+def tsfresh_vectorize_spike_count(
+    X_train, X_test, y_train, y_test, config, cache_file=None
+):
     if cache_file is not None and Path(cache_file).exists():
         with open(cache_file, 'rb') as f:
             X_train, y_train, X_test, y_test = pickle.load(f)
@@ -136,7 +143,9 @@ def tsfresh_vectorize_spike_count(X_train, X_test, y_train, y_test, config, cach
         logging.info('Started time series vectorization and preprocessing')
 
         def extract_tsfresh_feats(X):
-            X = X.series.apply(lambda row: np.array([float(v) for v in row.split()]).astype(np.float32))
+            X = X.series.apply(
+                lambda row: np.array([float(v) for v in row.split()]).astype(np.float32)
+            )
             df_train = pd.DataFrame(columns=['id', 'time', 'value'], dtype=float)
 
             for idx, ts in tqdm(enumerate(X)):
@@ -156,7 +165,8 @@ def tsfresh_vectorize_spike_count(X_train, X_test, y_train, y_test, config, cach
         X_test = extract_tsfresh_feats(X_test)
 
         preprocessing = transforms.TsfreshFeaturePreprocessorPipeline(
-            do_scaling=config.tsfresh_scale_features, remove_low_variance=config.tsfresh_remove_low_variance
+            do_scaling=config.tsfresh_scale_features,
+            remove_low_variance=config.tsfresh_remove_low_variance,
         ).construct_pipeline()
         preprocessing.fit(X_train)
         X_train = preprocessing.transform(X_train)
@@ -169,7 +179,9 @@ def tsfresh_vectorize_spike_count(X_train, X_test, y_train, y_test, config, cach
     return X_train, X_test, y_train, y_test
 
 
-def subsampled_fit_predict(models, X_train, X_test, y_train, y_test, config, predict_train=True):
+def subsampled_fit_predict(
+    models, X_train, X_test, y_train, y_test, config, predict_train=True
+):
     result_table_columns = ['model_name', 'trial', 'accuracy_test', 'auc_roc_test']
     if predict_train:
         result_table_columns += ['accuracy_train', 'auc_roc_train']
@@ -177,14 +189,16 @@ def subsampled_fit_predict(models, X_train, X_test, y_train, y_test, config, pre
     metrics_to_collect = {'accuracy': accuracy_score, 'auc_roc': roc_auc_score}
 
     for trial_idx in range(config.trials):
-        logging.info(
-            f'Training models on subsample # {trial_idx}/{config.trials}'
-        )
+        logging.info(f'Training models on subsample # {trial_idx}/{config.trials}')
         X_train_sample_balanced, y_train_sample_balanced = simple_undersampling(
-            X_train, y_train, subsample_size=config.train_subsample_factor,
+            X_train,
+            y_train,
+            subsample_size=config.train_subsample_factor,
         )
         X_test_sample_balanced, y_test_sample_balanced = simple_undersampling(
-            X_test, y_test, subsample_size=config.test_subsample_factor,
+            X_test,
+            y_test,
+            subsample_size=config.test_subsample_factor,
         )
 
         for model_name, model in models.items():
@@ -192,12 +206,19 @@ def subsampled_fit_predict(models, X_train, X_test, y_train, y_test, config, pre
             model.fit(X_train_sample_balanced, y_train_sample_balanced)
             val_sets = [((X_test_sample_balanced, y_test_sample_balanced), 'test')]
             if predict_train:
-                val_sets += [((X_train_sample_balanced, y_train_sample_balanced), 'train')]
+                val_sets += [
+                    ((X_train_sample_balanced, y_train_sample_balanced), 'train')
+                ]
             for (X, y), dataset_label in val_sets:
                 for metric_name, metric_fn in metrics_to_collect.items():
-                    model_predictions = model.predict(X) \
-                        if metric_name not in ['auc_roc'] else model.predict_proba(X)[:, 1]
-                    results[metric_name + '_' + dataset_label].append(metric_fn(y, model_predictions))
+                    model_predictions = (
+                        model.predict(X)
+                        if metric_name not in ['auc_roc']
+                        else model.predict_proba(X)[:, 1]
+                    )
+                    results[metric_name + '_' + dataset_label].append(
+                        metric_fn(y, model_predictions)
+                    )
             results['trial'].append(trial_idx)
             results['model_name'].append(model_name)
 

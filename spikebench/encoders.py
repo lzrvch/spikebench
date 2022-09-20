@@ -52,7 +52,6 @@ class SpikeTrainTransform(TransformerMixin, NoFitMixin):
 
 
 class DFSpikeTrainTransform(SpikeTrainTransform):
-
     def __init__(self, func, n_jobs=None, copy=False, **kwargs):
         super().__init__()
         self.func = func

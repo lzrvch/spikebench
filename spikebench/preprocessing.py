@@ -7,7 +7,6 @@ import spikebench.oopsi as oopsi
 from spikebench import SpikeTrainTransform
 
 
-
 class SmoothingTransform(SpikeTrainTransform):
     """Smooth a set of time series"""
 
@@ -36,7 +35,7 @@ class SmoothingTransform(SpikeTrainTransform):
                 '"hamming", "bartlett", "blackman"'
             )
 
-        s = np.r_[x[window_len-1:0:-1], x, x[-2:-window_len - 1:-1]]
+        s = np.r_[x[window_len - 1 : 0 : -1], x, x[-2 : -window_len - 1 : -1]]
         if window == 'flat':  # moving average
             w = np.ones(window_len, 'd')
         else:
@@ -74,7 +73,7 @@ class OOPSITransform(SpikeTrainTransform):
     @staticmethod
     def apply_oopsi(x, fps, dt_factor, max_iters):
         if fps is not None:
-            events, trace = oopsi.fast(x, dt=dt_factor/fps, iter_max=max_iters)
+            events, trace = oopsi.fast(x, dt=dt_factor / fps, iter_max=max_iters)
         else:
             raise RuntimeError('Invalid fps value!')
         return events, trace
@@ -88,8 +87,7 @@ class OOPSITransform(SpikeTrainTransform):
 
     def single_train_transform(self, tensor, timespan=None):
         self.fps = tensor.shape[0] / timespan
-        return self.apply_oopsi(tensor, self.fps,
-                                self.dt_factor, self.max_iters)
+        return self.apply_oopsi(tensor, self.fps, self.dt_factor, self.max_iters)
 
     def transform(self, X, y=None, axis=-1, delimiter=None):
         join_delimiter = ' ' if delimiter is None else delimiter
@@ -97,7 +95,9 @@ class OOPSITransform(SpikeTrainTransform):
         def transform_spike_train(spike_train):
             spike_train, timespan = spike_train
             train = self.string_to_float_series(spike_train, delimiter=delimiter)
-            events, transfomed_train = self.single_train_transform(train, timespan=timespan)
+            events, transfomed_train = self.single_train_transform(
+                train, timespan=timespan
+            )
             transformed_train_string = join_delimiter.join(
                 ['{:.5f}'.format(value) for value in transfomed_train]
             )
@@ -107,8 +107,13 @@ class OOPSITransform(SpikeTrainTransform):
             return transformed_train_string, events_string
 
         pool = Pool(self.n_jobs)
-        X.series = pool.map(transform_spike_train, [(series, timespan) for series, timespan
-                                                    in zip(X.series.values, X.timespan.values)])
+        X.series = pool.map(
+            transform_spike_train,
+            [
+                (series, timespan)
+                for series, timespan in zip(X.series.values, X.timespan.values)
+            ],
+        )
         return X
 
 
@@ -131,14 +136,15 @@ class MedianFilterDetrender(SpikeTrainTransform):
         self.mad_constant = 1.4826
 
     def _robust_std(self, x):
-        '''Robust estimate of std
-        '''
+        '''Robust estimate of std'''
         MAD = np.median(np.abs(x - np.median(x)))
         return self.mad_constant * MAD
 
     def detrend_trace(self, trace):
         trend_component = signal.medfilt(trace, self.window)
-        trend_component = np.minimum(trend_component, self.peak_std_threshold * self._robust_std(trend_component))
+        trend_component = np.minimum(
+            trend_component, self.peak_std_threshold * self._robust_std(trend_component)
+        )
         return trace - trend_component
 
     def numpy_transform(self, tensor, axis=1):
@@ -149,7 +155,6 @@ class MedianFilterDetrender(SpikeTrainTransform):
 
 
 class Normalize(SpikeTrainTransform):
-
     def __init__(self, window=1000, percentile=8):
         super().__init__()
         self.window = window
@@ -158,7 +163,11 @@ class Normalize(SpikeTrainTransform):
     @staticmethod
     def normalize_trace(trace, window=1000, percentile=8):
         lower_percentile = lambda x: np.percentile(x, percentile)
-        baseline = pd.Series(trace).rolling(window=window, center=True).apply(func=lower_percentile)
+        baseline = (
+            pd.Series(trace)
+            .rolling(window=window, center=True)
+            .apply(func=lower_percentile)
+        )
         baseline = baseline.fillna(method='bfill')
         baseline = baseline.fillna(method='ffill')
         dF = trace - baseline

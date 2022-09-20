@@ -42,7 +42,7 @@ INSTALL_REQUIRES = [
     'psutil',
     'gdown',
     'pyarrow',
-    'chika',
+    'git+https://github.com/moskomule/chika',
 ]
 
 EXTRAS_REQUIRE = {'tests': ['pytest'], 'data': ['fastparquet']}

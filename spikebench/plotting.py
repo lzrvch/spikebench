@@ -71,12 +71,19 @@ def prettify(figsize=(8, 6)):
     mpl.rcParams['figure.figsize'] = figsize
 
 
-def boxplot(data, x, y, figsize=(10, 8), xticklabels=None,
-            savefile=None, box_quantiles=None, notch=False):
+def boxplot(
+    data,
+    x,
+    y,
+    figsize=(10, 8),
+    xticklabels=None,
+    savefile=None,
+    box_quantiles=None,
+    notch=False,
+):
     fig, ax = plt.subplots(1)
     whis = (1, 99) if box_quantiles is not None else 1.5
-    sns.boxplot(x=x, y=y, data=data, notch=notch,
-                linewidth=2, width=0.4, whis=whis)
+    sns.boxplot(x=x, y=y, data=data, notch=notch, linewidth=2, width=0.4, whis=whis)
     prettify(figsize)
 
     for i, artist in enumerate(ax.artists):
@@ -121,9 +128,7 @@ def feature_scatter_plot(
     cmap = ('#fb290f', '#063373')
     # cmap = (sns.color_palette('Paired')[5], sns.color_palette('Paired')[1])
 
-    colors = pd.Series(y[indices]).map(
-        {0: cmap[0], 1: cmap[1]}
-    )
+    colors = pd.Series(y[indices]).map({0: cmap[0], 1: cmap[1]})
 
     custom_lines = [
         Line2D([0], [0], color=cmap[0], lw=1.5),
@@ -169,9 +174,7 @@ def embedding_scatter_plot(
 
     cmap = ('#fb290f', '#063373')
 
-    colors = pd.Series(y[indices]).map(
-        {0: cmap[0], 1: cmap[1]}
-    )
+    colors = pd.Series(y[indices]).map({0: cmap[0], 1: cmap[1]})
 
     custom_lines = [
         Line2D([0], [0], color=cmap[0], lw=1.5),

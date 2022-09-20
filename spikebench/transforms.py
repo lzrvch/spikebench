@@ -11,8 +11,12 @@ from tsfresh import extract_features
 from tsfresh.feature_extraction import ComprehensiveFCParameters
 
 import spikebench.helpers as helpers
-from spikebench.base_transforms import (DFLowVarianceRemoval, DFStandardScaler,
-                                        DFTransform, NoFitMixin)
+from spikebench.base_transforms import (
+    DFLowVarianceRemoval,
+    DFStandardScaler,
+    DFTransform,
+    NoFitMixin,
+)
 
 CPU_COUNT = psutil.cpu_count(logical=True)
 
@@ -48,7 +52,9 @@ class TrainNormalizeTransform(TransformerMixin, NoFitMixin):
             if split_chunks is not None:
                 normalized_trains = np.vstack([normalized_trains, split_chunks])
                 target = np.append(target, [y[train_index]] * split_chunks.shape[0])
-                groups = np.append(groups, [X.groups[train_index]] * split_chunks.shape[0])
+                groups = np.append(
+                    groups, [X.groups[train_index]] * split_chunks.shape[0]
+                )
 
         normalized_trains = normalized_trains[1:, :]
         if self.n_samples is not None:

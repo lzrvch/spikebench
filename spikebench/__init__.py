@@ -1,5 +1,9 @@
-from .plotting import beautify_mpl, prettify, \
-    feature_scatter_plot, embedding_scatter_plot
+from .plotting import (
+    beautify_mpl,
+    prettify,
+    feature_scatter_plot,
+    embedding_scatter_plot,
+)
 
 from .transforms import (
     TrainNormalizeTransform,

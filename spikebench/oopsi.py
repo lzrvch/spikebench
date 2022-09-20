@@ -95,18 +95,18 @@ def oopsi_est_map(F, P):
     # we can directly multiply it with a vector (without np.dot)
     M = oopsi_m(gam, T)
     grad_lnprior = M.T * llam
-    H1 = (a ** 2) / (sig ** 2) * eye(T)
+    H1 = (a**2) / (sig**2) * eye(T)
     z = 1.0  # weight on barrier function
     while z > 1e-13:
         D = F - a * C - b  # residual
-        lik = 1 / (2 * (sig ** 2)) * np.dot(D.T, D)
+        lik = 1 / (2 * (sig**2)) * np.dot(D.T, D)
         post = lik + np.dot(llam.T, n) - z * np.sum(np.log(n))  # calculate L
         s = 1.0
         d = 1.0
         while (lp.norm(d) > 5e-2) and (s > 1e-3):  # conv for z
-            glik = -a / (sig ** 2) * (F - a * C - b)
+            glik = -a / (sig**2) * (F - a * C - b)
             g = glik + grad_lnprior - z * (M.T * (1 / n))  # gradient, g
-            H2 = spdiags(1 / (n ** 2), 0, T, T)
+            H2 = spdiags(1 / (n**2), 0, T, T)
             H = H1 + z * (M.T * H2 * M)  # Hessian, H
             d = linsolve.spsolve(H, g)  # direction to step
             # find s
@@ -122,7 +122,7 @@ def oopsi_est_map(F, P):
                 C1 = C - s * d
                 n = M * C1
                 D = F - a * C1 - b
-                lik1 = 1 / (2 * (sig ** 2)) * np.dot(D.T, D)
+                lik1 = 1 / (2 * (sig**2)) * np.dot(D.T, D)
                 post1 = lik1 + np.dot(llam.T, n) - z * np.sum(np.log(n))
                 s = s / 5.0
                 if s < 1e-20:
@@ -221,13 +221,13 @@ def wiener(F, dt=0.020, iter_max=20, update=True):
     #
     D0 = F - C  # we assume a=1.0, b=0.0
     D1 = n - llam
-    lik = np.dot(D0.T, D0) / (2 * sig ** 2) + np.dot(D1.T, D1) / (2 * llam)
+    lik = np.dot(D0.T, D0) / (2 * sig**2) + np.dot(D1.T, D1) / (2 * llam)
     gtol = 1e-4
     #
     for i in range(iter_max):
         # g = -(F-C)/sig**2 + ((M*C).T*M-llam*(M.T*np.ones(T)))/llam
-        g = -(F - C) / sig ** 2 + (M.T * (M * C) - llam * (M.T * np.ones(T))) / llam
-        H = eye(T) / sig ** 2 + M.T * M / llam
+        g = -(F - C) / sig**2 + (M.T * (M * C) - llam * (M.T * np.ones(T))) / llam
+        H = eye(T) / sig**2 + M.T * M / llam
         d = linsolve.spsolve(H, g)
         C = C - d
         N = M * C
@@ -235,7 +235,7 @@ def wiener(F, dt=0.020, iter_max=20, update=True):
         old_lik = lik
         D0 = F - C
         D1 = n - llam
-        lik = np.dot(D0.T, D0) / (2 * sig ** 2) + np.dot(D1.T, D1) / (2 * llam)
+        lik = np.dot(D0.T, D0) / (2 * sig**2) + np.dot(D1.T, D1) / (2 * llam)
         if lik <= old_lik - gtol:  # NR step decreases likelihood
             n = N
             if update:
