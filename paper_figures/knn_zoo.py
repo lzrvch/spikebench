@@ -2,6 +2,7 @@ import logging
 import sys
 import warnings
 from dataclasses import asdict
+from functools import partial
 
 import chika
 import numpy as np

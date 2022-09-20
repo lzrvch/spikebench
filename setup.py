@@ -2,6 +2,7 @@
 
 import codecs
 import os
+import sys
 
 import setuptools
 
@@ -42,8 +43,13 @@ INSTALL_REQUIRES = [
     'psutil',
     'gdown',
     'pyarrow',
-    'git+https://github.com/moskomule/chika',
 ]
+
+
+python_version = sys.version_info[:2]
+if python_version[0] > 3 and python_version[1] >= 8:
+    INSTALL_REQUIRES.append('chika')
+
 
 EXTRAS_REQUIRE = {'tests': ['pytest'], 'data': ['fastparquet']}
 
@@ -57,6 +63,7 @@ setuptools.setup(
     long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
     url=URL,
     download_url=DOWNLOAD_URL,
+    packages=('spikebench',),
     classifiers=[
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',
